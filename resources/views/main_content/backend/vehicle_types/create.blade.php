@@ -4,15 +4,15 @@
 
 @section('breadcrumb')
 <li><a href="{{url('admin')}}">{{_lang('app.dashboard')}}</a> <i class="fa fa-circle"></i></li>
-<li><a href="{{route('categories.index')}}">{{_lang('app.categories')}}</a> <i class="fa fa-circle"></i></li>
+<li><a href="{{route('vehicle_types.index')}}">{{_lang('app.vehicle_types')}}</a> <i class="fa fa-circle"></i></li>
 <li><span> {{_lang('app.add')}}</span></li>
 @endsection
 
 @section('js')
-<script src="{{url('public/backend/js')}}/categories.js" type="text/javascript"></script>
+<script src="{{url('public/backend/js')}}/vehicle_types.js" type="text/javascript"></script>
 @endsection
 @section('content')
-<form role="form"  id="addEditCategoriesForm" enctype="multipart/form-data">
+<form role="form"  id="addEditVehicleTypesForm" enctype="multipart/form-data">
     {{ csrf_field() }}
 
     <div class="panel panel-default">
@@ -62,7 +62,16 @@
                     </select>
                      <label for="status">{{_lang('app.status') }}</label>
                     <span class="help-block"></span>
-                </div> 
+                </div>
+                 <div class="form-group col-md-3">
+                    <label class="control-label">{{_lang('app.image')}}</label>
+
+                    <div class="image_box">
+                        <img src="{{url('no-image.png')}}" width="100" height="80" class="image" />
+                    </div>
+                    <input type="file" name="image" id="image" style="display:none;">     
+                    <span class="help-block"></span>             
+                </div>
 
                 <div class="clearfix"></div>
 
@@ -83,6 +92,7 @@
 var new_lang = {
 };
 var new_config = {
+     action:'add'
 };
 
 </script>

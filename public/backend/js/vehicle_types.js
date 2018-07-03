@@ -1,5 +1,5 @@
-var Categories_grid;
-var Categories = function () {
+var VehicleTypes_grid;
+var VehicleTypes = function () {
 
     var init = function () {
 
@@ -7,26 +7,28 @@ var Categories = function () {
         $.extend(config, new_config);
         handleRecords();
         handleSubmit();
+        My.readImageMulti('image');
     };
 
     var handleRecords = function () {
 
-        Categories_grid = $('.dataTable').dataTable({
+        VehicleTypes_grid = $('.dataTable').dataTable({
             //"processing": true,
             "serverSide": true,
             "ajax": {
-                "url": config.admin_url + "/categories/data",
+                "url": config.admin_url + "/vehicle_types/data",
                 "type": "POST",
                 data: {_token: $('input[name="_token"]').val()},
             },
             "columns": [
-                {"data": "title", "name": "categories_translations.title"},
-                {"data": "active", "name": "categories.active", searchable: false},
-                {"data": "this_order", "name": "categories.this_order", searchable: false},
+                {"data": "title", "name": "vehicle_types_translations.title"},
+                {"data": "image", orderable: false, searchable: false},
+                {"data": "active", "name": "vehicle_types.active", searchable: false},
+                {"data": "this_order", "name": "vehicle_types.this_order", searchable: false},
                 {"data": "options", orderable: false, searchable: false}
             ],
             "order": [
-                [2, "asc"]
+                [3, "asc"]
             ],
             "oLanguage": {"sUrl": config.url + '/datatable-lang-' + config.lang_code + '.json'}
 
@@ -36,10 +38,11 @@ var Categories = function () {
 
     var handleSubmit = function () {
 
-        if ($('#addEditCategoriesForm').length > 0) {
+        if ($('#addEditVehicleTypesForm').length > 0) {
 
 
-            $('#addEditCategoriesForm').validate({
+            $('#addEditVehicleTypesForm').validate({
+                ignore: "",
                 rules: {
                     active: {
                         required: true,
@@ -70,24 +73,37 @@ var Categories = function () {
                     required: true
                 });
             }
-            $('#addEditCategoriesForm .submit-form').click(function () {
+            var image = "input[name='image']";
+            if (config.action == 'add') {
+                $(image).rules('add', {
+                    required: true,
+                    accept: "image/*",
+                    filesize: 1000 * 1024
+                });
+            } else {
+                $(image).rules('add', {
+                    accept: "image/*",
+                    filesize: 1000 * 1024
+                });
+            }
+            $('#addEditVehicleTypesForm .submit-form').click(function () {
 
-                if ($('#addEditCategoriesForm').validate().form()) {
-                    $('#addEditCategoriesForm .submit-form').prop('disabled', true);
-                    $('#addEditCategoriesForm .submit-form').html('<i class="fa fa-spinner fa-spin fa-2x fa-fw"></i><span class="sr-only">Loading...</span>');
+                if ($('#addEditVehicleTypesForm').validate().form()) {
+                    $('#addEditVehicleTypesForm .submit-form').prop('disabled', true);
+                    $('#addEditVehicleTypesForm .submit-form').html('<i class="fa fa-spinner fa-spin fa-2x fa-fw"></i><span class="sr-only">Loading...</span>');
                     setTimeout(function () {
-                        $('#addEditCategoriesForm').submit();
+                        $('#addEditVehicleTypesForm').submit();
                     }, 1000);
                 }
                 return false;
             });
-            $('#addEditCategoriesForm input').keypress(function (e) {
+            $('#addEditVehicleTypesForm input').keypress(function (e) {
                 if (e.which == 13) {
-                    if ($('#addEditCategoriesForm').validate().form()) {
-                        $('#addEditCategoriesForm .submit-form').prop('disabled', true);
-                        $('#addEditCategoriesForm .submit-form').html('<i class="fa fa-spinner fa-spin fa-2x fa-fw"></i><span class="sr-only">Loading...</span>');
+                    if ($('#addEditVehicleTypesForm').validate().form()) {
+                        $('#addEditVehicleTypesForm .submit-form').prop('disabled', true);
+                        $('#addEditVehicleTypesForm .submit-form').html('<i class="fa fa-spinner fa-spin fa-2x fa-fw"></i><span class="sr-only">Loading...</span>');
                         setTimeout(function () {
-                            $('#addEditCategoriesForm').submit();
+                            $('#addEditVehicleTypesForm').submit();
                         }, 1000);
                     }
                     return false;
@@ -96,13 +112,13 @@ var Categories = function () {
 
 
 
-            $('#addEditCategoriesForm').submit(function () {
+            $('#addEditVehicleTypesForm').submit(function () {
                 var id = $('#id').val();
-                var action = config.admin_url + '/categories';
+                var action = config.admin_url + '/vehicle_types';
                 var formData = new FormData($(this)[0]);
                 if (id != 0) {
                     formData.append('_method', 'PATCH');
-                    action = config.admin_url + '/categories/' + id;
+                    action = config.admin_url + '/vehicle_types/' + id;
                 }
                 $.ajax({
                     url: action,
@@ -113,14 +129,14 @@ var Categories = function () {
                     processData: false,
                     success: function (data) {
                         console.log(data);
-                        $('#addEditCategoriesForm .submit-form').prop('disabled', false);
-                        $('#addEditCategoriesForm .submit-form').html(lang.save);
+                        $('#addEditVehicleTypesForm .submit-form').prop('disabled', false);
+                        $('#addEditVehicleTypesForm .submit-form').html(lang.save);
 
                         if (data.type == 'success')
                         {
                             My.toast(data.message);
                             if (id == 0) {
-                                Categories.empty();
+                                VehicleTypes.empty();
                             }
 
 
@@ -143,8 +159,8 @@ var Categories = function () {
                         }
                     },
                     error: function (xhr, textStatus, errorThrown) {
-                        $('#addEditCategoriesForm .submit-form').prop('disabled', false);
-                        $('#addEditCategoriesForm .submit-form').html(lang.save);
+                        $('#addEditVehicleTypesForm .submit-form').prop('disabled', false);
+                        $('#addEditVehicleTypesForm .submit-form').html(lang.save);
                         My.ajax_error_message(xhr);
                     },
                     dataType: "json",
@@ -169,19 +185,19 @@ var Categories = function () {
             var id = $(t).attr("data-id");
             My.editForm({
                 element: t,
-                url: config.admin_url + '/categories/' + id,
+                url: config.admin_url + '/vehicle_types/' + id,
                 success: function (data)
                 {
                     console.log(data);
 
-                    Categories.empty();
-                    My.setModalTitle('#addEditCategories', lang.edit);
+                    VehicleTypes.empty();
+                    My.setModalTitle('#addEditVehicleTypes', lang.edit);
 
                     for (i in data.message)
                     {
                         $('#' + i).val(data.message[i]);
                     }
-                    $('#addEditCategories').modal('show');
+                    $('#addEditVehicleTypes').modal('show');
                 }
             });
 
@@ -191,28 +207,29 @@ var Categories = function () {
             var id = $(t).attr("data-id");
             My.deleteForm({
                 element: t,
-                url: config.admin_url + '/categories/' + id,
+                url: config.admin_url + '/vehicle_types/' + id,
                 data: {_method: 'DELETE', _token: $('input[name="_token"]').val()},
                 success: function (data)
                 {
-                    Categories_grid.api().ajax.reload();
+                    VehicleTypes_grid.api().ajax.reload();
                 }
             });
 
         },
         add: function () {
-            Categories.empty();
-            My.setModalTitle('#addEditCategories', lang.add);
-            $('#addEditCategories').modal('show');
+            VehicleTypes.empty();
+            My.setModalTitle('#addEditVehicleTypes', lang.add);
+            $('#addEditVehicleTypes').modal('show');
         },
         empty: function () {
             $('#id').val(0);
+            $('.image').html('<img style="height:80px;width:150px;" class="image"  src="' + config.public_path + '/uploads/vehicle_types/' + data.message[i] + '" alt="your image" />');
             My.emptyForm();
         }
     };
 
 }();
 jQuery(document).ready(function () {
-    Categories.init();
+    VehicleTypes.init();
 });
 

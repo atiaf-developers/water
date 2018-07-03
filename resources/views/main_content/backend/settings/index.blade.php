@@ -90,9 +90,7 @@
                         <div class="form-body">
                             <div class="col-md-12">
                                 <div class="form-group form-md-line-input">
-                                    <textarea class="form-control" id="about[{{ $key }}]" name="setting[about][{{ $key }}]"  cols="30" rows="10">
-                                        {{isset($settings['about']->value[$key])?$settings['about'][$key]->value[$key]:''}}
-                                    </textarea>
+                                    <textarea class="form-control" id="about[{{ $key }}]" name="setting[about][{{ $key }}]"  cols="30" rows="10">{{isset($settings['about']->{$key})?$settings['about']->{$key}:''}} </textarea>
                                     <label for="about">{{ _lang('app.'.$value) }}</label>
                                     <span class="help-block"></span>
                                 </div>

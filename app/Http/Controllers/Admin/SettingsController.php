@@ -25,7 +25,7 @@ class SettingsController extends BackendController {
 
         $this->data['settings'] = Setting::get()->keyBy('name');
         $this->data['settings']['about'] = json_decode($this->data['settings']['about']->value);
-        dd($this->data['settings']);
+        //dd($this->data['settings']);
         return $this->_view('settings/index', 'backend');
     }
 

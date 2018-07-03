@@ -1,14 +1,14 @@
 @extends('layouts.backend')
 
-@section('pageTitle', _lang('app.categories'))
+@section('pageTitle', _lang('app.vehicle_types'))
 
 @section('breadcrumb')
 <li><a href="{{url('admin')}}">{{_lang('app.dashboard')}}</a> <i class="fa fa-circle"></i></li>
-<li><span> {{_lang('app.categories')}}</span></li>
+<li><span> {{_lang('app.vehicle_types')}}</span></li>
 @endsection
 
 @section('js')
-<script src="{{url('public/backend/js')}}/categories.js" type="text/javascript"></script>
+<script src="{{url('public/backend/js')}}/vehicle_types.js" type="text/javascript"></script>
 @endsection
 @section('content')
 
@@ -22,7 +22,7 @@
             <div class="row">
                 <div class="col-md-6">
                     <div class="btn-group">
-                        <a class="btn green" style="margin-bottom: 40px;" href = "{{ route('categories.create') }}" onclick="">{{ _lang('app.add_new')}}<i class="fa fa-plus"></i> </a>
+                        <a class="btn green" style="margin-bottom: 40px;" href = "{{ route('vehicle_types.create') }}" onclick="">{{ _lang('app.add_new')}}<i class="fa fa-plus"></i> </a>
                     </div>
                 </div>
             </div>
@@ -32,6 +32,7 @@
             <thead>
                 <tr>
                     <th>{{_lang('app.title')}}</th>
+                    <th>{{_lang('app.image')}}</th>
                     <th>{{_lang('app.active')}}</th>
                     <th>{{_lang('app.this_order')}}</th>
                     <th>{{_lang('app.options')}}</th>
@@ -50,7 +51,7 @@ var new_lang = {
 
 };
 var new_config = {
- 
+    action:'index'
 };
 </script>
 @endsection

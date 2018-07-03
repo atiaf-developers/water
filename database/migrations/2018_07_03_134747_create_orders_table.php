@@ -23,17 +23,15 @@ class CreateOrdersTable extends Migration
             $table->integer('status');
             $table->double('lat',11,8);
             $table->double('lng',11,8);
-            $table->integer('payment_method');
+            $table->boolean('payment_method');
             
 
-            $table->integer('user_id')->unsigned();
-            $table->foreign('user_id')->references('id')->on('users');
+            $table->integer('client_id')->unsigned();
+            $table->foreign('client_id')->references('id')->on('users');
 
             $table->integer('vehicle_id')->unsigned();
             $table->foreign('vehicle_id')->references('id')->on('vehicles');
 
-            /*$table->integer('delegate_id')->unsigned();
-            $table->foreign('delegate_id')->references('id')->on('users');*/
 
             $table->integer('rejection_reason_id')->unsigned()->nullable();
             $table->foreign('rejection_reason_id')->references('id')->on('rejection_reasons');

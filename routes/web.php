@@ -109,8 +109,8 @@ Route::group(['namespace' => 'Admin', 'prefix' => 'admin'], function () {
     Route::resource('groups', 'GroupsController');
     Route::resource('admins', 'AdminsController');
 
-    Route::resource('categories', 'CategoriesController');
-    Route::post('categories/data', 'CategoriesController@data');
+    Route::resource('vehicle_types', 'VehicleTypesController');
+    Route::post('vehicle_types/data', 'VehicleTypesController@data');
     Route::resource('account_types', 'AccountTypesController');
     Route::post('account_types/data', 'AccountTypesController@data');
     Route::resource('branches', 'BranchesController');
