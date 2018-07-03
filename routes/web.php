@@ -77,6 +77,10 @@ Route::group(['namespace' => 'Admin', 'prefix' => 'admin'], function () {
     
     Route::resource('vehicle_weights', 'VehicleWeightsController');
     Route::post('vehicle_weights/data', 'VehicleWeightsController@data');
+    
+    
+    Route::resource('vehicle_types', 'VehicleTypesController');
+    Route::post('vehicle_types/data', 'VehicleTypesController@data');
 
     Route::resource('clients', 'ClientsController');
     Route::post('clients/data', 'ClientsController@data');
