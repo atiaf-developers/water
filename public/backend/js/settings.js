@@ -18,7 +18,13 @@ var Settings = function() {
                 'setting[email]': {
                     required: true,
                 },
-                'setting[site_url]': {
+                'setting[map_range]': {
+                    required: true,
+                },
+                'setting[commission]': {
+                    required: true,
+                },
+                'setting[tax]': {
                     required: true,
                 },
 
@@ -37,12 +43,9 @@ var Settings = function() {
         });
         var langs = JSON.parse(config.languages);
         for (var x = 0; x < langs.length; x++) {
-            var about = "textarea[name='about[" + langs[x] + "]']";
-            var policy = "textarea[name='policy[" + langs[x] + "]']";
+            var about = "textarea[name='setting[about][" + langs[x] + "]']";
+            console.log(about);
             $(about).rules('add', {
-                required: true
-            });
-            $(policy).rules('add', {
                 required: true
             });
         }

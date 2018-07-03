@@ -8,7 +8,7 @@ use App\Models\NotiObject;
 use App\Models\Noti;
 use App\Helpers\Fcm;
 use App\Models\Device;
-
+use DB;
 trait Basic {
 
     protected $languages = array(
@@ -90,6 +90,94 @@ trait Basic {
             $device_type = $device_type == 1 ? 'and' : 'ios';
             return $Fcm->send($device_token, $notification, $device_type);
         }
+    }
+    public function updateValues($model, $data,$quote=false) {
+        //dd($values);
+        $table = $model::getModel()->getTable();
+        //dd($table);
+
+        $columns = array_keys($data);
+
+        $ids = [];
+        $sql_arr = [];
+        $count=0;
+        foreach ($data as $column => $value_arr) {
+            //dd($value_arr);
+            $cases = [];
+            foreach ($value_arr as $one) {
+                $id = (int) $one['id'];
+                $value =  $one['value'];
+                if($quote){
+                      $cases[] = "WHEN {$id} then '{$value}'";
+                }else{
+                      $cases[] = "WHEN {$id} then {$value}";
+                }
+              
+                $ids[] = $id;
+            }
+                
+            $cases = implode(' ', $cases);
+           
+            if($count==0){
+                 $sql_arr[] = "SET `{$column}` = CASE `id` {$cases} END";
+            }else{
+                 $sql_arr[] = "`{$column}` = CASE `id` {$cases} END";
+            }
+            $count++;
+        }
+     
+   
+        $ids = implode(',', $ids);
+        $sql_str = implode(',', $sql_arr);
+        //dd($sql_str);
+        return DB::update("UPDATE `$table` $sql_str WHERE `id` in ({$ids})");
+    }
+    public function updateValues2($model, $data,$quote=false) {
+        //dd($values);
+        $table = $model::getModel()->getTable();
+        //dd($table);
+
+        $columns = array_keys($data);
+
+           $where_arr=[];
+        $sql_arr = [];
+        $count=0;
+        foreach ($data as $column => $value_arr) {
+            //dd($value_arr);
+            $cases = [];
+            foreach ($value_arr as $one) {
+          
+                $value =  $one['value'];
+                $cond =  $one['cond'];
+                $where_str=[];
+                foreach($cond as $one_cond){
+                    $where_str[]=$one_cond[0].' '.$one_cond[1].' '.$one_cond[2];
+                }
+                $where_str=implode(' and ', $where_str);
+                $where_arr[]="($where_str)";
+                if($quote){
+                      $cases[] = "WHEN $where_str then '{$value}'";
+                }else{
+                      $cases[] = "WHEN $where_str then {$value}";
+                }
+            
+            }
+                
+            $cases = implode(' ', $cases);
+           
+            if($count==0){
+                 $sql_arr[] = "SET `{$column}` = CASE  {$cases} END";
+            }else{
+                 $sql_arr[] = "`{$column}` = CASE  {$cases} END";
+            }
+            $count++;
+        }
+     
+        $where_arr = implode(' or ', $where_arr);
+        //dd($where_arr);
+        $sql_str = implode(',', $sql_arr);
+        //dd($sql_str);
+        return DB::update("UPDATE `$table` $sql_str WHERE $where_arr");
     }
 
     

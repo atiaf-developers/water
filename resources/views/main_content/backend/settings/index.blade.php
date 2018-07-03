@@ -37,11 +37,26 @@
                     <span class="help-block"></span>
                 </div>
                 <div class="form-group form-md-line-input col-md-6">
-                    <input type="text" class="form-control" id="email" name="setting[site_url]" value="{{isset($settings['site_url'])?$settings['site_url']->value:''}}">
-                    <label for="site_url">{{_lang('app.site_url') }}</label>
+                    <input type="text" class="form-control" id="commission" name="setting[commission]" value="{{isset($settings['commission'])?$settings['commission']->value:''}}">
+                    <label for="commission">{{_lang('app.commission') }}</label>
                     <span class="help-block"></span>
                 </div>
-    
+                <div class="form-group form-md-line-input col-md-6">
+                    <input type="text" class="form-control" id="email" name="setting[map_range]" value="{{isset($settings['map_range'])?$settings['map_range']->value:''}}">
+                    <label for="map_range">{{_lang('app.map_range') }}</label>
+                    <span class="help-block"></span>
+                </div>
+                <div class="form-group form-md-line-input col-md-6">
+                    <input type="text" class="form-control" id="email" name="setting[tax]" value="{{isset($settings['tax'])?$settings['tax']->value:''}}">
+                    <label for="tax">{{_lang('app.tax') }}</label>
+                    <span class="help-block"></span>
+                </div>
+                <div class="form-group form-md-line-input col-md-6">
+                    <input type="text" class="form-control" id="email" name="setting[delivery_cost]" value="{{isset($settings['delivery_cost'])?$settings['delivery_cost']->value:''}}">
+                    <label for="delivery_cost">{{_lang('app.delivery_cost') }}</label>
+                    <span class="help-block"></span>
+                </div>
+
 
 
                 <div class="clearfix"></div>
@@ -58,28 +73,27 @@
         </div>
 
     </div>
-    <div class="panel panel-default">
-
+    <div class="panel panel-default" id="editSiteSettings">
+        <div class="panel-heading">
+            <h3 class="panel-title">{{_lang('app.about') }}</h3>
+        </div>
         <div class="panel-body">
 
-            <div class="form-body">  
+
+            <div class="form-body">
 
                 @foreach ($languages as $key => $value)
                 <div class="panel panel-default">
-
+       
                     <div class="panel-body">
 
                         <div class="form-body">
                             <div class="col-md-12">
-                                <div class="form-group form-md-line-input col-md-6">
-                                    <textarea class="form-control" id="about[{{ $key }}]" name="about[{{ $key }}]"  cols="30" rows="10">{{isset($settings_translations[$key])?$settings_translations[$key]->about:''}}</textarea>
-                                    <label for="about">{{_lang('app.about') }} {{ _lang('app. '.$value.'') }}</label>
-                                    <span class="help-block"></span>
-                                </div>
-                       
-                                <div class="form-group form-md-line-input col-md-6">
-                                    <textarea class="form-control" id="policy[{{ $key }}]" name="policy[{{ $key }}]"  cols="30" rows="10">{{isset($settings_translations[$key])?$settings_translations[$key]->policy:''}}</textarea>
-                                    <label for="policy">{{_lang('app.policy') }} {{ _lang('app. '.$value.'') }}</label>
+                                <div class="form-group form-md-line-input">
+                                    <textarea class="form-control" id="about[{{ $key }}]" name="setting[about][{{ $key }}]"  cols="30" rows="10">
+                                        {{isset($settings['about']->value[$key])?$settings['about'][$key]->value[$key]:''}}
+                                    </textarea>
+                                    <label for="about">{{ _lang('app.'.$value) }}</label>
                                     <span class="help-block"></span>
                                 </div>
                             </div>
@@ -96,19 +110,24 @@
 
 
 
-                <div class="panel panel-default">
-                    <div class="panel-footer text-center">
-                        <button type="button" class="btn btn-info submit-form"
-                                >{{_lang('app.save') }}</button>
-                    </div>
-
-                </div>
+                <div class="clearfix"></div>
 
 
 
 
+            </div>
 
 
 
-                </form>
-                @endsection
+
+            <!--Table Wrapper Finish-->
+        </div>
+        <div class="panel-footer text-center">
+            <button type="button" class="btn btn-info submit-form"
+                    >{{_lang('app.save') }}</button>
+        </div>
+
+    </div>
+
+</form>
+@endsection

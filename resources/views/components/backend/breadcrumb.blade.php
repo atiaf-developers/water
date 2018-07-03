@@ -25,9 +25,9 @@
         <div class="theme-option">
             <span>
                 {{_lang('app.language')}} </span>
-            <select class="layout-option form-control input-sm" id="change-lang">
-                <option selected value="ar">{{_lang('app.arabic')}}</option>
-                <option value="en">{{_lang('app.english')}}</option>
+            <select class="form-control input-sm" id="change-lang">
+                <option {{$lang_code=='ar'?'selected':''}} value="ar">{{_lang('app.arabic')}}</option>
+                <option {{$lang_code=='en'?'selected':''}} value="en">{{_lang('app.english')}}</option>
             </select>
         </div>
        
