@@ -1,14 +1,14 @@
 @extends('layouts.backend')
 
-@section('pageTitle', _lang('app.account_types'))
+@section('pageTitle', _lang('app.rejection_reasons'))
 
 @section('breadcrumb')
 <li><a href="{{url('admin')}}">{{_lang('app.dashboard')}}</a> <i class="fa fa-circle"></i></li>
-<li><span> {{_lang('app.account_types')}}</span></li>
+<li><span> {{_lang('app.rejection_reasons')}}</span></li>
 @endsection
 
 @section('js')
-<script src="{{url('public/backend/js')}}/account_types.js" type="text/javascript"></script>
+<script src="{{url('public/backend/js')}}/rejection_reasons.js" type="text/javascript"></script>
 @endsection
 @section('content')
 
@@ -22,7 +22,7 @@
             <div class="row">
                 <div class="col-md-6">
                     <div class="btn-group">
-                        <a class="btn green" style="margin-bottom: 40px;" href = "{{ route('account_types.create') }}" onclick="">{{ _lang('app.add_new')}}<i class="fa fa-plus"></i> </a>
+                        <a class="btn green" style="margin-bottom: 40px;" href = "{{ route('rejection_reasons.create') }}" onclick="">{{ _lang('app.add_new')}}<i class="fa fa-plus"></i> </a>
                     </div>
                 </div>
             </div>

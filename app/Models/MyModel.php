@@ -7,9 +7,11 @@ use App\Helpers\AUTHORIZATION;
 use App\Models\User;
 use Request;
 use Image;
+use App\Traits\ModelTrait;
 
 class MyModel extends Model {
-
+   
+   use ModelTrait;
     protected $lang_code;
     protected static $limit = 10;
     protected static $distance = 1000000;
