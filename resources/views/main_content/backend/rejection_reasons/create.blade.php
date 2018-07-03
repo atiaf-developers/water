@@ -4,15 +4,15 @@
 
 @section('breadcrumb')
 <li><a href="{{url('admin')}}">{{_lang('app.dashboard')}}</a> <i class="fa fa-circle"></i></li>
-<li><a href="{{route('account_types.index')}}">{{_lang('app.account_types')}}</a> <i class="fa fa-circle"></i></li>
+<li><a href="{{route('rejection_reasons.index')}}">{{_lang('app.rejection_reasons')}}</a> <i class="fa fa-circle"></i></li>
 <li><span> {{_lang('app.add')}}</span></li>
 @endsection
 
 @section('js')
-<script src="{{url('public/backend/js')}}/account_types.js" type="text/javascript"></script>
+<script src="{{url('public/backend/js')}}/rejection_reasons.js" type="text/javascript"></script>
 @endsection
 @section('content')
-<form role="form"  id="addEditAccountTypesForm" enctype="multipart/form-data">
+<form role="form"  id="addEditRejectionReasonsForm" enctype="multipart/form-data">
     {{ csrf_field() }}
 
     <div class="panel panel-default">

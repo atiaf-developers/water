@@ -1,5 +1,5 @@
-var AccountTypes_grid;
-var AccountTypes = function () {
+var VehicleWeights_grid;
+var VehicleWeights = function () {
 
     var init = function () {
 
@@ -11,18 +11,18 @@ var AccountTypes = function () {
 
     var handleRecords = function () {
 
-        AccountTypes_grid = $('.dataTable').dataTable({
+        VehicleWeights_grid = $('.dataTable').dataTable({
             //"processing": true,
             "serverSide": true,
             "ajax": {
-                "url": config.admin_url + "/account_types/data",
+                "url": config.admin_url + "/vehicle_weights/data",
                 "type": "POST",
                 data: {_token: $('input[name="_token"]').val()},
             },
             "columns": [
-                {"data": "title", "name": "account_types_translations.title"},
-                {"data": "active", "name": "account_types.active", searchable: false},
-                {"data": "this_order", "name": "account_types.this_order", searchable: false},
+                {"data": "title", "name": "vehicle_weights_translations.title"},
+                {"data": "active", "name": "vehicle_weights.active", searchable: false},
+                {"data": "this_order", "name": "vehicle_weights.this_order", searchable: false},
                 {"data": "options", orderable: false, searchable: false}
             ],
             "order": [
@@ -36,10 +36,10 @@ var AccountTypes = function () {
 
     var handleSubmit = function () {
 
-        if ($('#addEditAccountTypesForm').length > 0) {
+        if ($('#addEditVehicleWeightsForm').length > 0) {
 
 
-            $('#addEditAccountTypesForm').validate({
+            $('#addEditVehicleWeightsForm').validate({
                 rules: {
                     active: {
                         required: true,
@@ -70,24 +70,24 @@ var AccountTypes = function () {
                     required: true
                 });
             }
-            $('#addEditAccountTypesForm .submit-form').click(function () {
+            $('#addEditVehicleWeightsForm .submit-form').click(function () {
 
-                if ($('#addEditAccountTypesForm').validate().form()) {
-                    $('#addEditAccountTypesForm .submit-form').prop('disabled', true);
-                    $('#addEditAccountTypesForm .submit-form').html('<i class="fa fa-spinner fa-spin fa-2x fa-fw"></i><span class="sr-only">Loading...</span>');
+                if ($('#addEditVehicleWeightsForm').validate().form()) {
+                    $('#addEditVehicleWeightsForm .submit-form').prop('disabled', true);
+                    $('#addEditVehicleWeightsForm .submit-form').html('<i class="fa fa-spinner fa-spin fa-2x fa-fw"></i><span class="sr-only">Loading...</span>');
                     setTimeout(function () {
-                        $('#addEditAccountTypesForm').submit();
+                        $('#addEditVehicleWeightsForm').submit();
                     }, 1000);
                 }
                 return false;
             });
-            $('#addEditAccountTypesForm input').keypress(function (e) {
+            $('#addEditVehicleWeightsForm input').keypress(function (e) {
                 if (e.which == 13) {
-                    if ($('#addEditAccountTypesForm').validate().form()) {
-                        $('#addEditAccountTypesForm .submit-form').prop('disabled', true);
-                        $('#addEditAccountTypesForm .submit-form').html('<i class="fa fa-spinner fa-spin fa-2x fa-fw"></i><span class="sr-only">Loading...</span>');
+                    if ($('#addEditVehicleWeightsForm').validate().form()) {
+                        $('#addEditVehicleWeightsForm .submit-form').prop('disabled', true);
+                        $('#addEditVehicleWeightsForm .submit-form').html('<i class="fa fa-spinner fa-spin fa-2x fa-fw"></i><span class="sr-only">Loading...</span>');
                         setTimeout(function () {
-                            $('#addEditAccountTypesForm').submit();
+                            $('#addEditVehicleWeightsForm').submit();
                         }, 1000);
                     }
                     return false;
@@ -96,13 +96,13 @@ var AccountTypes = function () {
 
 
 
-            $('#addEditAccountTypesForm').submit(function () {
+            $('#addEditVehicleWeightsForm').submit(function () {
                 var id = $('#id').val();
-                var action = config.admin_url + '/account_types';
+                var action = config.admin_url + '/vehicle_weights';
                 var formData = new FormData($(this)[0]);
                 if (id != 0) {
                     formData.append('_method', 'PATCH');
-                    action = config.admin_url + '/account_types/' + id;
+                    action = config.admin_url + '/vehicle_weights/' + id;
                 }
                 $.ajax({
                     url: action,
@@ -113,38 +113,52 @@ var AccountTypes = function () {
                     processData: false,
                     success: function (data) {
                         console.log(data);
-                        $('#addEditAccountTypesForm .submit-form').prop('disabled', false);
-                        $('#addEditAccountTypesForm .submit-form').html(lang.save);
+                        $('#addEditVehicleWeightsForm .submit-form').prop('disabled', false);
+                        $('#addEditVehicleWeightsForm .submit-form').html(lang.save);
 
                         if (data.type == 'success')
                         {
                             My.toast(data.message);
                             if (id == 0) {
-                                AccountTypes.empty();
+                                VehicleWeights.empty();
                             }
 
 
                         } else {
-                            if (typeof data.errors !== 'undefined') {
-                                for (i in data.errors)
-                                {
+                            console.log(data)
+                            if (typeof data.errors === 'object') {
+                                for (i in data.errors) {
                                     var message = data.errors[i];
-                                    if (i.startsWith('title')) {
+                                    if (i.startsWith('title') || i.startsWith('description') || i.startsWith('address') || i.startsWith('about')) {
                                         var key_arr = i.split('.');
                                         var key_text = key_arr[0] + '[' + key_arr[1] + ']';
                                         i = key_text;
                                     }
-
                                     $('[name="' + i + '"]')
-                                            .closest('.form-group').addClass('has-error');
-                                    $('[name="' + i + '"]').closest('.form-group').find(".help-block").html(message).css('opacity', 1);
+                                        .closest('.form-group').addClass('has-error');
+                                    $('#' + i).closest('.form-group').find(".help-block").html(message).css('opacity', 1)
                                 }
+                            }
+                            if (typeof data.message !== 'undefined') {
+                                $.confirm({
+                                    title: lang.error,
+                                    content: data.message,
+                                    type: 'red',
+                                    typeAnimated: true,
+                                    buttons: {
+                                        tryAgain: {
+                                            text: lang.try_again,
+                                            btnClass: 'btn-red',
+                                            action: function() {}
+                                        }
+                                    }
+                                });
                             }
                         }
                     },
                     error: function (xhr, textStatus, errorThrown) {
-                        $('#addEditAccountTypesForm .submit-form').prop('disabled', false);
-                        $('#addEditAccountTypesForm .submit-form').html(lang.save);
+                        $('#addEditVehicleWeightsForm .submit-form').prop('disabled', false);
+                        $('#addEditVehicleWeightsForm .submit-form').html(lang.save);
                         My.ajax_error_message(xhr);
                     },
                     dataType: "json",
@@ -165,45 +179,24 @@ var AccountTypes = function () {
         init: function () {
             init();
         },
-        edit: function (t) {
-            var id = $(t).attr("data-id");
-            My.editForm({
-                element: t,
-                url: config.admin_url + '/account_types/' + id,
-                success: function (data)
-                {
-                    console.log(data);
-
-                    AccountTypes.empty();
-                    My.setModalTitle('#addEditAccountTypes', lang.edit);
-
-                    for (i in data.message)
-                    {
-                        $('#' + i).val(data.message[i]);
-                    }
-                    $('#addEditAccountTypes').modal('show');
-                }
-            });
-
-        },
         delete: function (t) {
 
             var id = $(t).attr("data-id");
             My.deleteForm({
                 element: t,
-                url: config.admin_url + '/account_types/' + id,
+                url: config.admin_url + '/vehicle_weights/' + id,
                 data: {_method: 'DELETE', _token: $('input[name="_token"]').val()},
                 success: function (data)
                 {
-                    AccountTypes_grid.api().ajax.reload();
+                    VehicleWeights_grid.api().ajax.reload();
                 }
             });
 
         },
         add: function () {
-            AccountTypes.empty();
-            My.setModalTitle('#addEditAccountTypes', lang.add);
-            $('#addEditAccountTypes').modal('show');
+            VehicleWeights.empty();
+            My.setModalTitle('#addEditVehicleWeights', lang.add);
+            $('#addEditVehicleWeights').modal('show');
         },
         empty: function () {
                 $('#id').val(0);
@@ -213,6 +206,6 @@ var AccountTypes = function () {
 
 }();
 jQuery(document).ready(function () {
-    AccountTypes.init();
+    VehicleWeights.init();
 });
 
