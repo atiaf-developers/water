@@ -23,8 +23,10 @@ Route::group(['namespace' => 'Api'], function () {
     Route::get('token', 'BasicController@getToken');
     Route::get('settings', 'BasicController@getSettings');
 
-    Route::get('categories', 'BasicController@getCategories');
-    Route::get('account_types', 'BasicController@getAccountTypes');
+    Route::get('vehicle_types', 'BasicController@getVehiclesTypes');
+    Route::get('rejection_reasons', 'BasicController@getRejectionReasons');
+
+
     Route::get('branches', 'BasicController@getBranches');
     Route::post('password/reset', 'PasswordController@reset');
     Route::post('password/verify', 'PasswordController@verify');

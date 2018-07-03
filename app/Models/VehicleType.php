@@ -12,6 +12,15 @@ class VehicleType extends MyModel {
         'm' => array('width' => 400, 'height' => 400),
     );
 
+    public static function getAll() {
+        return static::join('vehicle_types_translations as trans', 'vehicle_types.id', '=', 'trans.vehicle_type_id')
+                        ->orderBy('vehicle_types.this_order', 'ASC')
+                        ->where('vehicle_types.active',true)
+                        ->where('trans.locale', static::getLangCode())
+                        ->select('vehicle_types.id','trans.title','vehicle_types.image')
+                        ->paginate(static::$limit);
+    }
+
 
     public function translations() {
         return $this->hasMany(VehicleTypeTranslation::class, 'vehicle_type_id');
@@ -19,9 +28,10 @@ class VehicleType extends MyModel {
 
     public static function transform($item) {
         $transformer = new \stdClass();
+        
         $transformer->id = $item->id;
         $transformer->title = $item->title;
-
+        $transformer->image = url('public/uploads/vehicle_types').'/m_'.$item->image;
         return $transformer;
     }
 
