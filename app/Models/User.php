@@ -27,11 +27,10 @@ class User extends Authenticatable {
     public static function transform($item)
     {
         $transformer = new \stdClass();
-        $transformer->name = $item->name;
+        $transformer->username = $item->username;
         $transformer->email = $item->email;
         $transformer->mobile = $item->mobile;
-        $transformer->accountType = $item->account_type_id;
-        $transformer->accountTypeTitle = $item->accountTypeTitle;
+      
         $transformer->image = url('public/uploads/users').'/'.$item->image;
         return $transformer;
     }
