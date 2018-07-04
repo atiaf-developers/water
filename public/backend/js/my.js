@@ -62,7 +62,7 @@ var My = function () {
             };
             toastr.success(message, lang.message);
         },
-         print: function (div)
+        print: function (div)
         {
             var mywindow = window.open('', 'PRINT', 'height=600,width=800');
 
@@ -76,7 +76,7 @@ var My = function () {
 //            mywindow.document.close(); // necessary for IE >= 10
 //            mywindow.focus(); // necessary for IE >= 10*/
 
-            mywindow.print();
+mywindow.print();
             //mywindow.close();
 
             return false;
@@ -139,154 +139,158 @@ var My = function () {
 
 
             number = (number + '')
-                    .replace(/[^0-9+\-Ee.]/g, '');
+            .replace(/[^0-9+\-Ee.]/g, '');
             var n = !isFinite(+number) ? 0 : +number,
-                    prec = !isFinite(+decimals) ? 0 : Math.abs(decimals),
-                    sep = (typeof thousands_sep === 'undefined') ? ',' : thousands_sep,
-                    dec = (typeof dec_point === 'undefined') ? '.' : dec_point,
-                    s = '',
-                    toFixedFix = function (n, prec) {
-                        var k = Math.pow(10, prec);
-                        return '' + (Math.round(n * k) / k)
-                                .toFixed(prec);
-                    };
+            prec = !isFinite(+decimals) ? 0 : Math.abs(decimals),
+            sep = (typeof thousands_sep === 'undefined') ? ',' : thousands_sep,
+            dec = (typeof dec_point === 'undefined') ? '.' : dec_point,
+            s = '',
+            toFixedFix = function (n, prec) {
+                var k = Math.pow(10, prec);
+                return '' + (Math.round(n * k) / k)
+                .toFixed(prec);
+            };
             // Fix for IE parseFloat(0.55).toFixed(0) = 0;
             s = (prec ? toFixedFix(n, prec) : '' + Math.round(n))
-                    .split('.');
+            .split('.');
             if (s[0].length > 3) {
                 s[0] = s[0].replace(/\B(?=(?:\d{3})+(?!\d))/g, sep);
             }
             if ((s[1] || '')
-                    .length < prec) {
+                .length < prec) {
                 s[1] = s[1] || '';
-                s[1] += new Array(prec - s[1].length + 1)
-                        .join('0');
-            }
-            return s.join(dec);
-        },
+            s[1] += new Array(prec - s[1].length + 1)
+            .join('0');
+        }
+        return s.join(dec);
+    },
 
-        ajax_error_message: function (xhr) {
-            var message;
-            if (xhr.status == 403) {
-                message = 'The action you have requested is not allowed';
-            } else {
-                message = xhr.responseText;
-                if (typeof xhr.responseJSON !== "undefined")
-                {
-                    message = xhr.responseJSON.message;
-                }
-
+    ajax_error_message: function (xhr) {
+        var message;
+        if (xhr.status == 403) {
+            message = 'The action you have requested is not allowed';
+        } else {
+            message = xhr.responseText;
+            if (typeof xhr.responseJSON !== "undefined")
+            {
+                message = xhr.responseJSON.message;
             }
-            bootbox.dialog({
-                message: message,
-                title: lang.attention_message,
-                buttons: {
-                    danger: {
-                        label: lang.close,
-                        className: "red"
-                    }
-                }
-            });
 
         }
-        ,
-        set_error: function (id, msg) {
-            $('[name="' + id + '"]')
-                    .closest('.form-group').addClass('has-error').removeClass("has-info");
-            $('#' + id).parent()
+        bootbox.dialog({
+            message: message,
+            title: lang.attention_message,
+            buttons: {
+                danger: {
+                    label: lang.close,
+                    className: "red"
+                }
+            }
+        });
 
+    }
+    ,
+    set_error: function (id, msg) {
+        $('[name="' + id + '"]')
+        .closest('.form-group').addClass('has-error').removeClass("has-info");
+        $('#' + id).parent()
+
+        if ($("#" + id).parent().hasClass("input-group"))
+        {
+            $help_block = $('#' + id).parent().parent().find('.help-block');
+        } else {
+            $help_block = $('#' + id).parent().find('.help-block');
+        }
+
+
+        if ($help_block.length)
+        {
+            $help_block.html(msg);
+        } else {
             if ($("#" + id).parent().hasClass("input-group"))
-            {
-                $help_block = $('#' + id).parent().parent().find('.help-block');
-            } else {
-                $help_block = $('#' + id).parent().find('.help-block');
-            }
-
-
-            if ($help_block.length)
-            {
-                $help_block.html(msg);
-            } else {
-                if ($("#" + id).parent().hasClass("input-group"))
-                    $('#' + id).parent().parent().append('<span class="help-block">' + msg + '</span>');
-                else
-                    $('#' + id).parent().append('<span class="help-block">' + msg + '</span>');
-            }
+                $('#' + id).parent().parent().append('<span class="help-block">' + msg + '</span>');
+            else
+                $('#' + id).parent().append('<span class="help-block">' + msg + '</span>');
         }
-        ,
-        set_errors: function (errors) {
-            for (var i in errors)
-            {
-                My.set_error(i, errors[i]);
-            }
+    }
+    ,
+    set_errors: function (errors) {
+        for (var i in errors)
+        {
+            My.set_error(i, errors[i]);
         }
-        ,
-        initCheckbox: function () {
+    }
+    ,
+    initCheckbox: function () {
 
-            if ($('#checkAll').length == 0)
-                return false;
+        if ($('#checkAll').length == 0)
+            return false;
 
-            var checkboxes = document.querySelectorAll('input.check-me'),
-                    checkall = document.getElementById('checkAll');
+        var checkboxes = document.querySelectorAll('input.check-me'),
+        checkall = document.getElementById('checkAll');
 
-            for (var i = 0; i < checkboxes.length; i++) {
-                checkboxes[i].onclick = function () {
-                    var checkedCount = document.querySelectorAll('input.check-me:checked').length;
-
-                    checkall.checked = checkedCount > 0;
-                    checkall.indeterminate = checkedCount > 0 && checkedCount < checkboxes.length;
-                    if (checkedCount > 0)
-                    {
-                        $('#delete-selected').prop("disabled", false);
-                    } else {
-                        $('#delete-selected').prop("disabled", true);
-                    }
-                    if (checkedCount > 0 && checkedCount < checkboxes.length)
-                    {
-                        $('#checkAll').parent().addClass("indeterminate").removeClass("checked");
-                    } else {
-                        $('#checkAll').parent().removeClass("indeterminate");
-                    }
-                    $('#delete-num').html(checkedCount)
-                }
-            }
-
-            checkall.onclick = function () {
-
+        for (var i = 0; i < checkboxes.length; i++) {
+            checkboxes[i].onclick = function () {
                 var checkedCount = document.querySelectorAll('input.check-me:checked').length;
-                if (checkedCount > 0 && checkedCount < checkboxes.length)
-                {
-                    this.checked = true;
-                } else if (checkedCount == 0) {
-                    this.checked = true;
-                } else {
-                    this.checked = false;
-                }
 
-                $('#checkAll').parent().addClass("checked").removeClass("indeterminate");
-
-                for (var i = 0; i < checkboxes.length; i++) {
-                    checkboxes[i].checked = this.checked;
-                }
-
-                if (document.querySelectorAll('input.check-me:checked').length > 0)
+                checkall.checked = checkedCount > 0;
+                checkall.indeterminate = checkedCount > 0 && checkedCount < checkboxes.length;
+                if (checkedCount > 0)
                 {
                     $('#delete-selected').prop("disabled", false);
                 } else {
                     $('#delete-selected').prop("disabled", true);
                 }
-
-                $('#delete-num').html(document.querySelectorAll('input.check-me:checked').length)
+                if (checkedCount > 0 && checkedCount < checkboxes.length)
+                {
+                    $('#checkAll').parent().addClass("indeterminate").removeClass("checked");
+                } else {
+                    $('#checkAll').parent().removeClass("indeterminate");
+                }
+                $('#delete-num').html(checkedCount)
             }
         }
-        ,
-        emptyForm: function () {
-            $('input[type="text"],input[type="email"],input[type="date"],input[type="password"],input[type="number"],textarea').val("");
-            $('select').find('option').eq(0).prop('selected', true);
+
+        checkall.onclick = function () {
+
+            var checkedCount = document.querySelectorAll('input.check-me:checked').length;
+            if (checkedCount > 0 && checkedCount < checkboxes.length)
+            {
+                this.checked = true;
+            } else if (checkedCount == 0) {
+                this.checked = true;
+            } else {
+                this.checked = false;
+            }
+
+            $('#checkAll').parent().addClass("checked").removeClass("indeterminate");
+
+            for (var i = 0; i < checkboxes.length; i++) {
+                checkboxes[i].checked = this.checked;
+            }
+
+            if (document.querySelectorAll('input.check-me:checked').length > 0)
+            {
+                $('#delete-selected').prop("disabled", false);
+            } else {
+                $('#delete-selected').prop("disabled", true);
+            }
+
+            $('#delete-num').html(document.querySelectorAll('input.check-me:checked').length)
+        }
+    }
+    ,
+    emptyForm: function () {
+
+        $('input[type="text"],input[type="email"],input[type="date"],input[type="password"],input[type="number"],textarea').val("");
+            //$('select').find('option').eq(0).prop('selected', true);
+            $('select').each(function(){
+                $(this).find('option:first').prop('selected', 'selected');
+            });
             $('.has-error').removeClass('has-error');
             $('.has-success').removeClass('has-success');
             $('.help-block').html('');
-        
+            
         }
         ,
         scrollTo: function (el, offeset) {
@@ -431,112 +435,112 @@ var My = function () {
 //                        return false;
 //                    }
 //                }).confirmation({'trigger': 'click'});
-        }
-        ,
-        deleteForm: function (args) {
+}
+,
+deleteForm: function (args) {
 
-            $(args.element).html('<i class="fa fa-spin fa-spinner"></i>');
+    $(args.element).html('<i class="fa fa-spin fa-spinner"></i>');
+    $.ajax({
+        url: args.url,
+        data: args.data,
+        success: function (data) {
+            console.log(data);
+
+
+            if (data.type == 'success') {
+
+                $(args.element).closest('tr').fadeOut('slow');
+                args.success(data);
+
+            } else {
+                $(args.element).html('<i class="fa fa-times fa-1-8x text-danger"></i>');
+                bootbox.dialog({
+                    message: '<p>' + data.message + '</p>',
+                    title: 'رسالة تنبيه',
+                    buttons: {
+                        danger: {
+                            label: 'اغلاق',
+                            className: "red"
+                        }
+                    }
+                });
+            }
+        },
+        error: function (xhr, textStatus, errorThrown) {
+            $(args.element).html('<i class="fa fa-trash fa-1-8x text-danger"></i>');
+            $('.loading').addClass('hide');
+            My.ajax_error_message(xhr);
+        },
+        dataType: "json",
+        type: "post"
+    })
+
+}
+,
+multiDeleteForm: function (args) {
+
+    My.clearToolTip();
+
+    if ($(args.element).hasClass("has-confirm")) {
+        $(args.element).confirmation('show');
+        return false;
+    }
+    $(args.element).addClass("has-confirm");
+    $(args.element).confirmation({
+        href: "javascript:;",
+        onConfirm: function () {
+
             $.ajax({
-                url: args.url,
+                url: config.site_url + args.url,
                 data: args.data,
                 success: function (data) {
-                    console.log(data);
 
-
-                    if (data.type == 'success') {
-
-                        $(args.element).closest('tr').fadeOut('slow');
+                    if (data.type == 'success')
+                    {
                         args.success(data);
+                        $(args.element).prop("disabled", true);
+                        $('#delete-num').html(0);
+                        $('#checkAll').prop("indeterminate", false).parent().removeClass("indeterminate");
 
                     } else {
-                        $(args.element).html('<i class="fa fa-times fa-1-8x text-danger"></i>');
                         bootbox.dialog({
-                            message: '<p>' + data.message + '</p>',
-                            title: 'رسالة تنبيه',
+                            message: data.message,
+                            title: lang.messages_error,
                             buttons: {
                                 danger: {
-                                    label: 'اغلاق',
+                                    label: lang.close,
                                     className: "red"
                                 }
                             }
                         });
                     }
+
                 },
                 error: function (xhr, textStatus, errorThrown) {
-                    $(args.element).html('<i class="fa fa-trash fa-1-8x text-danger"></i>');
+
                     $('.loading').addClass('hide');
-                    My.ajax_error_message(xhr);
+                    bootbox.dialog({
+                        message: xhr.responseText,
+                        title: lang.messages_error,
+                        buttons: {
+                            danger: {
+                                label: lang.close,
+                                className: "red"
+                            }
+                        }
+                    });
                 },
                 dataType: "json",
                 type: "post"
             })
 
+            return false;
         }
-        ,
-        multiDeleteForm: function (args) {
-
-            My.clearToolTip();
-
-            if ($(args.element).hasClass("has-confirm")) {
-                $(args.element).confirmation('show');
-                return false;
-            }
-            $(args.element).addClass("has-confirm");
-            $(args.element).confirmation({
-                href: "javascript:;",
-                onConfirm: function () {
-
-                    $.ajax({
-                        url: config.site_url + args.url,
-                        data: args.data,
-                        success: function (data) {
-
-                            if (data.type == 'success')
-                            {
-                                args.success(data);
-                                $(args.element).prop("disabled", true);
-                                $('#delete-num').html(0);
-                                $('#checkAll').prop("indeterminate", false).parent().removeClass("indeterminate");
-
-                            } else {
-                                bootbox.dialog({
-                                    message: data.message,
-                                    title: lang.messages_error,
-                                    buttons: {
-                                        danger: {
-                                            label: lang.close,
-                                            className: "red"
-                                        }
-                                    }
-                                });
-                            }
-
-                        },
-                        error: function (xhr, textStatus, errorThrown) {
-
-                            $('.loading').addClass('hide');
-                            bootbox.dialog({
-                                message: xhr.responseText,
-                                title: lang.messages_error,
-                                buttons: {
-                                    danger: {
-                                        label: lang.close,
-                                        className: "red"
-                                    }
-                                }
-                            });
-                        },
-                        dataType: "json",
-                        type: "post"
-                    })
-
-                    return false;
-                }
-            }).confirmation('show');
-        }
-        ,
-    }
-    ;
+    }).confirmation('show');
+}
+,
+}
+;
 
 }();
 

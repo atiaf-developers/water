@@ -12,13 +12,26 @@ class VehicleType extends MyModel {
         'm' => array('width' => 400, 'height' => 400),
     );
 
-    public static function getAll() {
-        return static::join('vehicle_types_translations as trans', 'vehicle_types.id', '=', 'trans.vehicle_type_id')
+    public static function getAll($paginate = false) {
+        $data =  static::join('vehicle_types_translations as trans', 'vehicle_types.id', '=', 'trans.vehicle_type_id')
                         ->orderBy('vehicle_types.this_order', 'ASC')
                         ->where('vehicle_types.active',true)
                         ->where('trans.locale', static::getLangCode())
-                        ->select('vehicle_types.id','trans.title','vehicle_types.image')
-                        ->paginate(static::$limit);
+                        ->select('vehicle_types.id','trans.title','vehicle_types.image');
+                         if (!$paginate) {
+                            $data->get();
+                        }else{
+                            $data->paginate(static::$limit);
+                        }
+        return $data;               
+    }
+
+    public static function getAllAdmin() {
+        return static::join('vehicle_types_translations as trans', 'vehicle_types.id', '=', 'trans.vehicle_type_id')
+                        ->orderBy('vehicle_types.this_order', 'ASC')
+                        ->where('trans.locale', static::getLangCode())
+                        ->select('vehicle_types.id','trans.title')
+                        ->get();
     }
 
 

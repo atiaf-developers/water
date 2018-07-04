@@ -69,6 +69,10 @@ Route::group(['namespace' => 'Admin', 'prefix' => 'admin'], function () {
     Route::resource('categories', 'CategoriesController');
     Route::post('categories/data', 'CategoriesController@data');
 
+    Route::resource('delegates', 'DelegatesController');
+    Route::post('delegates/data', 'DelegatesController@data');
+     Route::get('delegates/status/{id}', 'DelegatesController@status');
+
     Route::resource('rejection_reasons', 'RejectionReasonsController');
     Route::post('rejection_reasons/data', 'RejectionReasonsController@data');
 
