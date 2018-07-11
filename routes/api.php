@@ -43,7 +43,7 @@ Route::group(['namespace' => 'Api'], function () {
         Route::get('home', 'BasicController@home');
         Route::post('logout', 'UserController@logout');
         Route::post('user/update', 'UserController@update');
-        Route::get('get_user', 'UserController@getUser');
+        Route::get('auth_user', 'UserController@getAuthUser');
         Route::post('rate', 'BasicController@rate');
         Route::get('products', 'ProductsController@index');
         Route::get('products/{id}', 'ProductsController@show');

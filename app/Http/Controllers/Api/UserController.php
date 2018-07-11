@@ -35,13 +35,13 @@ class UserController extends ApiController {
             $rules['name'] = "required";
         }
         if ($request->input('email')) {
-            $rules['email'] = "required|email|unique:users,email,$User->id";
+            $rules['email'] = "required|email|unique:users,email,$User->id,id,deleted_at,NULL";
         }
-        if ($request->input('image')) {
-            $rules['image'] = "required";
+        if ($request->input('username')) {
+            $rules['username'] = "required|unique:users,username,$User->id,id,deleted_at,NULL";
         }
         if ($request->input('mobile')) {
-            $rules['mobile'] = "required|unique:users,mobile,$User->id";
+            $rules['mobile'] = "required|unique:users,mobile,$User->id,id,deleted_at,NULL";
         }
         if ($request->input('old_password')) {
             $rules['password'] = "required";
@@ -60,6 +60,9 @@ class UserController extends ApiController {
                 }
                 if ($request->input('email')) {
                     $User->email = $request->input('email');
+                }
+                if ($request->input('username')) {
+                    $User->username = $request->input('username');
                 }
                 if ($request->input('mobile')) {
                     if ($request->step == 1) {
@@ -82,16 +85,9 @@ class UserController extends ApiController {
                         $User->password = bcrypt($request->input('password'));
                     }
                 }
-                if ($image = $request->input('image')) {
-                    $image = preg_replace("/\r|\n/", "", $image);
-                    User::deleteUploaded('users', $User->image);
-                    if (isBase64image($image)) {
-                        $User->image = User::upload($image, 'users', true, false, true);
-                    }
-                }
                 unset($User->device_id);
                 $User->save();
-                $User = User::transform($this->info($User->id));
+                $User = User::transform($User);
                 DB::commit();
                 return _api_json($User, ['message' => _lang('app.updated_successfully')]);
             } catch (\Exception $e) {
@@ -101,9 +97,9 @@ class UserController extends ApiController {
         }
     }
 
-    public function getUser() {
+    public function getAuthUser() {
         try {
-            $user = User::transform($this->info($this->auth_user()->id));
+            $user = User::transform($this->auth_user());
             return _api_json($user);
         } catch (\Exception $e) {
             $message = _lang('app.error_is_occured');
@@ -111,15 +107,7 @@ class UserController extends ApiController {
         }
     }
 
-    private function info($id) {
-        $find = User::join('account_types', 'account_types.id', '=', 'users.account_type_id')
-                ->join('account_types_translations', 'account_types.id', '=', 'account_types_translations.account_type_id')
-                ->select('users.*', 'account_types_translations.title as accountTypeTitle')
-                ->where('users.id', $id)
-                ->where('account_types_translations.locale', $this->lang_code)
-                ->first();
-        return $find;
-    }
+  
 
     public function logout() {
         //dd($this->auth_user()->device_id);
