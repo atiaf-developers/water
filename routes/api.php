@@ -38,20 +38,24 @@ Route::group(['namespace' => 'Api'], function () {
     Route::post('send_verification_code', 'RegisterController@sendVerificationCode');
 
     Route::get('setting', 'BasicController@getSettings');
-
+    Route::get('drivers', 'UserController@getNearestDrivers');
+    Route::resource('orders', 'OrdersController');
     Route::group(['middleware' => 'jwt.auth'], function () {
         Route::get('home', 'BasicController@home');
         Route::post('logout', 'UserController@logout');
         Route::post('user/update', 'UserController@update');
+        Route::post('user/complete_data', 'UserController@complete_data');
         Route::get('auth_user', 'UserController@getAuthUser');
         Route::post('rate', 'BasicController@rate');
         Route::get('products', 'ProductsController@index');
         Route::get('products/{id}', 'ProductsController@show');
         Route::get('favorites', 'FavoritesController@index');
         Route::post('favorites', 'FavoritesController@store');
-        Route::resource('orders', 'OrdersController');
+
         Route::resource('contact_messages', 'ContactMessagesController');
         Route::get('notifications', 'NotificationsController@index');
         Route::get('noti_count', 'NotificationsController@getUnReadNoti');
+        Route::post('update_location', 'UserController@updateLocation');
+        Route::post('orders/status', 'OrdersController@changeOrderStatus');
     });
 });

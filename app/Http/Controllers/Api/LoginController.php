@@ -37,7 +37,7 @@ class LoginController extends ApiController {
                 $expire_in_seconds = $token->expire;
                 //dd($user->id);
                 Device::updateOrCreate(
-                        ['device_id' => $request->input('device_id'), 'user_id' => $user->id], ['device_token' => $request->input('device_token'), 'device_type' => $request->input('device_type')]
+                        ['device_id' => $request->input('device_id')], ['user_id' => $user->id, 'device_token' => $request->input('device_token'), 'device_type' => $request->input('device_type')]
                 );
                 $user = User::transform($user);
                 return _api_json($user, ['message' => _lang('app.login_done_successfully'), 'token' => AUTHORIZATION::generateToken($token), 'expire' => $expire_in_seconds]);
@@ -45,8 +45,6 @@ class LoginController extends ApiController {
             return _api_json(new \stdClass(), ['message' => _lang('app.invalid_credentials')], 400);
         }
     }
-
-  
 
     private function auth_check($credentials) {
 
@@ -65,9 +63,5 @@ class LoginController extends ApiController {
         }
         return false;
     }
-
-   
-
-   
 
 }

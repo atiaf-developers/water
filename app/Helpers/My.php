@@ -179,7 +179,7 @@ if (!function_exists('ArabicDate')) {
 
 if (!function_exists('ArabicDateSpecial')) {
 
-    function ArabicDateSpecial($date,$time=true) {
+    function ArabicDateSpecial($date, $time = true) {
         $months = array("Jan" => "يناير", "Feb" => "فبراير", "Mar" => "مارس", "Apr" => "أبريل", "May" => "مايو", "Jun" => "يونيو", "Jul" => "يوليو", "Aug" => "أغسطس", "Sep" => "سبتمبر", "Oct" => "أكتوبر", "Nov" => "نوفمبر", "Dec" => "ديسمبر");
         $your_date = $date; // The Current Date
         $en_month = date("M", strtotime($your_date));
@@ -198,10 +198,10 @@ if (!function_exists('ArabicDateSpecial')) {
         $eastern_arabic_symbols = array("٠", "١", "٢", "٣", "٤", "٥", "٦", "٧", "٨", "٩");
         //$current_date = $ar_day . ' ' . date('d', strtotime($your_date)) . ' - ' . $ar_month . ' - ' . date('Y');
         //$current_date = $ar_day . ' ' . date('d', strtotime($your_date)) . ' ' . $ar_month;
-        if($time)
-         $current_date =  date('h:i A',strtotime($your_date)).' '.$ar_day . ',' .$ar_month.' '.date('d', strtotime($your_date)) . ' ,' . date('Y');
+        if ($time)
+            $current_date = date('h:i A', strtotime($your_date)) . ' ' . $ar_day . ',' . $ar_month . ' ' . date('d', strtotime($your_date)) . ' ,' . date('Y');
         else
-        $current_date =  $ar_day . ',' .$ar_month.' '.date('d', strtotime($your_date)) . ' ,' . date('Y');
+            $current_date = $ar_day . ',' . $ar_month . ' ' . date('d', strtotime($your_date)) . ' ,' . date('Y');
 
         //$arabic_date = str_replace($standard, $eastern_arabic_symbols, $current_date);
 
@@ -819,7 +819,7 @@ if (!function_exists('getAddress3')) {
      * @return string
      */
     function getAddress3($lat, $lng, $lang = "AR") {
-        $url = 'https://maps.googleapis.com/maps/api/geocode/json?key=AIzaSyAApMZSnqbOzVh5oUkIOnUSdss7jFAnNso&latlng=' . trim($lat) . ',' . trim($lng) . '&language=' . $lang ;
+        $url = 'https://maps.googleapis.com/maps/api/geocode/json?key=AIzaSyAApMZSnqbOzVh5oUkIOnUSdss7jFAnNso&latlng=' . trim($lat) . ',' . trim($lng) . '&language=' . $lang;
         $json = curlRequest($url);
         $data = json_decode($json);
         if ($data != null) {
@@ -1106,6 +1106,29 @@ if (!function_exists('getAddress')) {
         } else {
             return "";
         }
+    }
+
+}
+if (!function_exists('GetDrivingDistance')) {
+
+    function GetDrivingDistance($lat1,$long1, $lat2, $long2, $lang = "AR") {
+        $url = "https://maps.googleapis.com/maps/api/distancematrix/json?origins=" . $lat1 . "," . $long1 . "&destinations=" . $lat2 . "," . $long2 . "&mode=driving&language=$lang";
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($ch, CURLOPT_PROXYPORT, 3128);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
+        $response = curl_exec($ch);
+        curl_close($ch);
+        $response_a = json_decode($response, true);
+        //dd($response_a);
+        $dist = $response_a['rows'][0]['elements'][0]['distance']['text'];
+        $time = $response_a['rows'][0]['elements'][0]['duration']['text'];
+        $origin_address = $response_a['origin_addresses'][0];
+        $destination_address = $response_a['destination_addresses'][0];
+
+        return array('distance' => $dist, 'time' => $time,'origin_address'=>$origin_address,'destination_address'=>$destination_address);
     }
 
 }

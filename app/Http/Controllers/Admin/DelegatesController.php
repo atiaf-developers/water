@@ -69,7 +69,7 @@ class DelegatesController extends BackendController {
             if (!$vehicle) {
                 return _json('error', _lang('app.not_found'));
             }  
-            $delegate = User::find($vehicle->delegate_id);
+            $delegate = User::find($vehicle->driver_id);
             $delegate->active = !$delegate->active;
             $delegate->save();
 
@@ -144,7 +144,7 @@ class DelegatesController extends BackendController {
             $vehicle->price = $request->input('price');
             $vehicle->vehicle_image = Vehicle::upload($request->file('vehicle_image'), 'vehicles', true);
             $vehicle->license_image = Vehicle::upload($request->file('license_image'), 'vehicles', true);
-            $vehicle->delegate_id = $delegate->id;
+            $vehicle->driver_id = $delegate->id;
 
             $vehicle->save();
 
@@ -184,7 +184,7 @@ class DelegatesController extends BackendController {
             return $this->err404();
         }
 
-        $this->data['user'] = User::find($vehicle->delegate_id);
+        $this->data['user'] = User::find($vehicle->driver_id);
         $this->data['vehicle_types'] = VehicleType::getAllAdmin();
         $this->data['vehicle_weights'] = VehicleWeight::getAllAdmin();
 
@@ -216,7 +216,7 @@ class DelegatesController extends BackendController {
         if (!$vehicle) {
             return _json('error', _lang('app.error_is_occured'), 404);
         }
-        $delegate = User::find($vehicle->delegate_id);
+        $delegate = User::find($vehicle->driver_id);
 
         unset($this->rules['vehicle_image'],$this->rules['license_image'],$this->rules['image'],$this->rules['password']);
 
@@ -316,7 +316,7 @@ class DelegatesController extends BackendController {
 
     public function data(Request $request) {
 
-        $delegates = Vehicle::Join('users', 'users.id', '=', 'vehicles.delegate_id')
+        $delegates = Vehicle::Join('users', 'users.id', '=', 'vehicles.driver_id')
         ->select([
             'vehicles.id', "users.name", "vehicles.vehicle_image", 'users.image', 'users.active',
         ]);

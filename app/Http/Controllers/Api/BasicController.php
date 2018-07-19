@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Validator;
 use App\Helpers\AUTHORIZATION;
 use App\Models\User;
 use App\Models\Setting;
-use App\Models\SettingTranslation;
+use App\Models\Vehicle;
 use App\Models\Category;
 use App\Models\Location;
 use App\Models\ContactMessage;
@@ -62,13 +62,21 @@ class BasicController extends ApiController {
 
     public function getSettings() {
         try {
-            $settings = Setting::select('name', 'value')->get()->keyBy('name');
-            $settings['social_media'] = json_decode($settings['social_media']->value);
-            $settings['phone'] = explode(",", $settings['phone']->value);
-            $settings['email'] = explode(",", $settings['email']->value);
-            $settings['info'] = SettingTranslation::where('locale', $this->lang_code)->first();
-            unset($settings['num_free_ads']);
-            return _api_json($settings);
+            $settings = Setting::select('name', 'value')->get();
+            $new=array();
+            if($settings->count()>0){
+                foreach($settings as $one){
+                    if($one->name=='about'){
+                        $value=json_decode($one->value);
+                        $one->value=$value->{$this->lang_code};
+                    }
+                    if($one->name=='phone'||$one->name=='email'){
+                        $one->value=explode(',',$one->value);
+                    }
+                    $new[$one->name]=$one->value;
+                }
+            }
+            return _api_json($new);
         } catch (\Exception $e) {
             return _api_json(new \stdClass(), ['message' => $e->getMessage()], 400);
         }
@@ -95,9 +103,10 @@ class BasicController extends ApiController {
     }
 
 
+ 
     public function getVehiclesTypes(Request $request) {
         try {
-            $vehicle_types = VehicleType::getAll();
+            $vehicle_types = VehicleType::getAllApi();
             return _api_json(VehicleType::transformCollection($vehicle_types));
         } catch (\Exception $e) {
             return _api_json([], ['message' => _lang('app.error_is_occured')], 400);
@@ -106,7 +115,7 @@ class BasicController extends ApiController {
 
     public function getRejectionReasons(Request $request) {
         try {
-            $rejection_reasons = RejectionReason::getAll();
+            $rejection_reasons = RejectionReason::getAllApi();
             return _api_json(RejectionReason::transformCollection($rejection_reasons));
         } catch (\Exception $e) {
             return _api_json([], ['message' => _lang('app.error_is_occured')], 400);

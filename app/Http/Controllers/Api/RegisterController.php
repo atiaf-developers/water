@@ -101,15 +101,17 @@ class RegisterController extends ApiController {
                 }
             }
 
-            DB::commit();
 
+            //dd($user);
             $token = new \stdClass();
             $token->id = $user->id;
             $token->expire = strtotime('+' . $this->expire_no . $this->expire_type);
             $token->device_id = $request->input('device_id');
             $expire_in_seconds = $token->expire;
-            return _api_json(User::transform($user), ['token' => AUTHORIZATION::generateToken($token), 'expire' => $expire_in_seconds], 201);
+            DB::commit();
+            return _api_json(new \stdClass(), ['token' => AUTHORIZATION::generateToken($token), 'expire' => $expire_in_seconds], 201);
         } catch (\Exception $e) {
+            //dd($e);
             DB::rollback();
             $message = _lang('app.error_is_occured');
             return _api_json(new \stdClass(), ['message' => $e->getMessage()], 400);
@@ -129,12 +131,15 @@ class RegisterController extends ApiController {
         $User->save();
 
         //device
-        $Device = new Device;
-        $Device->device_id = $request->input('device_id');
-        $Device->device_token = $request->input('device_token');
-        $Device->device_type = $request->input('device_type');
-        $Device->user_id = $User->id;
-        $Device->save();
+        Device::updateOrCreate(
+                ['device_id' => $request->input('device_id')], ['user_id' => $User->id, 'device_token' => $request->input('device_token'), 'device_type' => $request->input('device_type')]
+        );
+//        $Device = new Device;
+//        $Device->device_id = $request->input('device_id');
+//        $Device->device_token = $request->input('device_token');
+//        $Device->device_type = $request->input('device_type');
+//        $Device->user_id = $User->id;
+//        $Device->save();
 
 
         return $User;
@@ -170,12 +175,15 @@ class RegisterController extends ApiController {
         $Vehicle->save();
 
         //device
-        $Device = new Device;
-        $Device->device_id = $request->input('device_id');
-        $Device->device_token = $request->input('device_token');
-        $Device->device_type = $request->input('device_type');
-        $Device->user_id = $User->id;
-        $Device->save();
+        Device::updateOrCreate(
+                ['device_id' => $request->input('device_id')], ['user_id' => $User->id, 'device_token' => $request->input('device_token'), 'device_type' => $request->input('device_type')]
+        );
+//        $Device = new Device;
+//        $Device->device_id = $request->input('device_id');
+//        $Device->device_token = $request->input('device_token');
+//        $Device->device_type = $request->input('device_type');
+//        $Device->user_id = $User->id;
+//        $Device->save();
 
         return $User;
     }

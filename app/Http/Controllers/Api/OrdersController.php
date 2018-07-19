@@ -6,13 +6,31 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\ApiController;
 use Illuminate\Support\Facades\Validator;
 use App\Helpers\AUTHORIZATION;
-use App\Models\Product;
 use App\Models\Order;
-use App\Models\OrderDetail;
-use App\Models\Address;
+use App\Models\OrderDriver;
+use App\Models\Device;
 use DB;
 
 class OrdersController extends ApiController {
+
+    private $new_order_rules = array(
+        'driver' => 'required',
+        'lat' => 'required',
+        'lng' => 'required',
+        'payment_method' => 'required',
+        'price' => 'required',
+        'commission' => 'required',
+        'taxes' => 'required',
+        'delivery_cost' => 'required',
+        'total_price' => 'required',
+    );
+    private $change_driver_rules = array(
+        'driver' => 'required',
+    );
+    private $order_status_rules = array(
+        'order' => 'required',
+        'status' => 'required',
+    );
 
     public function __construct() {
         parent::__construct();
@@ -21,12 +39,18 @@ class OrdersController extends ApiController {
     public function index(Request $request) {
         try {
             $user = $this->auth_user();
-            $orders = Order::getOrdersApi(['user_id' => $user->id]);
-            if ($orders->count() > 0) {
-                foreach ($orders as $order) {
-                    $order->details = Order::getOrderDetailsApi($order->id);
+            //dd($user->type);
+            $where_array = array();
+            if ($user) {
+                if ($user->type == 1) {
+                    $where_array['client'] = $user->id;
+                } else if ($user->type == 2) {
+                    $where_array['driver'] = $user->id;
                 }
+            } else {
+                $where_array = ['device_id' => $request->input('device_id')];
             }
+            $orders = Order::getOrdersApi($where_array);
             return _api_json($orders);
         } catch (\Exception $e) {
             $message = _lang('app.error_is_occured');
@@ -48,45 +72,62 @@ class OrdersController extends ApiController {
             return _api_json(new \stdClass(), ['message' => $e->getMessage()], 400);
         }
     }
-    
-    public function downloadCard($id){
-        $data = [
-           'foo' => 'bar'
-       ];
-       $filename = 'card';
-       $pdf = PDF::loadView('main_content.backend.pdf.card', $data);
-       return $pdf->stream('card.pdf');
-    }
 
     public function store(Request $request) {
-        DB::beginTransaction();
+
         try {
-            $cart = json_decode($request->input('cart'));
-            //dd($cart);
-            if (!$cart) {
-                return _api_json('', ['message' => _lang('app.error_is_occured')], 400);
+            $user = $this->auth_user();
+            $order = Order::find($request->input('id'));
+            $rules = [];
+            if ($order) {
+                $rules = $this->change_driver_rules;
+            } else {
+                $rules = $this->new_order_rules;
             }
-            $address = $this->create_address($cart->address);
-            //dd($address);
-            $cart->info->user_id = $this->auth_user()->id;
-            $cart->info->address_id = $address->id;
-            $order = $this->create_order($cart->info);
-            $order_details = array();
-            if (count($cart->details) > 0) {
-                foreach ($cart->details as $one) {
-                    $order_details[] = array(
-                        'order_id' => $order->id,
-                        'product_id' => $one->product_id,
-                        'price' => $one->price,
-                        'quantity' => $one->quantity,
-                        'total_price' => $one->total_price
-                    );
-                    $this->updatequantity($one->product_id, $one->quantity);
+            if(!$user){
+                $rules['device_id']='required';
+                $rules['device_type']='required';
+                $rules['device_token']='required';
+            }
+            $validator = Validator::make($request->all(), $rules);
+            if ($validator->fails()) {
+                $errors = $validator->errors()->toArray();
+                return _api_json(new \stdClass(), ['errors' => $errors], 400);
+            } else {
+
+                DB::beginTransaction();
+
+                if (!$order) {
+                    $order = new Order;
+                    if ($user) {
+                        $order->client_id = $user->id;
+                    } else {
+                        $device = Device::updateOrCreate(
+                                        ['device_id' => $request->input('device_id')], ['device_token' => $request->input('device_token'), 'device_type' => $request->input('device_type')]
+                        );
+                        $order->device_id = $device->id;
+                    }
+
+                    $order->payment_method = $request->input('payment_method');
+                    $order->price = $request->input('price');
+                    $order->taxes = $request->input('taxes');
+                    $order->delivery_cost = $request->input('delivery_cost');
+                    $order->total_price = $request->input('total_price');
+                    $order->commission = $request->input('commission');
+                    $order->lat = $request->input('lat');
+                    $order->lng = $request->input('lng');
+                    $order->date = date('Y-m-d');
+                    $order->save();
                 }
-                OrderDetail::insert($order_details);
+                $OrderDriver = new OrderDriver;
+                $OrderDriver->order_id = $order->id;
+                $OrderDriver->driver_id = $request->input('driver');
+                $OrderDriver->status = 0;
+                $OrderDriver->save();
+                DB::commit();
+
+                return _api_json('', ['message' => _lang('app.sent_successfully'), 'order_id' => $order->id]);
             }
-            DB::commit();
-            return _api_json('', ['message' => _lang('app.sent_successfully'),'order_id'=>$order->id]);
         } catch (\Exception $e) {
             DB::rollback();
             $message = _lang('app.error_is_occured');
@@ -94,35 +135,55 @@ class OrdersController extends ApiController {
         }
     }
 
-    private function create_address($address_obj) {
+    public function changeOrderStatus(Request $request) {
+        $user = $this->auth_user();
 
-        $address = new Address;
-        $address->city = $address_obj->city;
-        $address->region = $address_obj->region;
-        $address->street = $address_obj->street;
-        $address->building = $address_obj->building;
-        $address->lat = $address_obj->lat;
-        $address->lng = $address_obj->lng;
-        $address->save();
-        return $address;
-    }
+        $OrderDriver = OrderDriver::where('order_id', $request->order)->where('driver_id', $user->id)->first();
+        $status = $request->status;
+        if (!$OrderDriver) {
+            return _api_json('', ['message' => _lang('app.error_is_occured')], 400);
+        }
+        if ($status == 3) {
+            $this->rules['rejection_reason'] = 'required';
+        }
+        $validator = Validator::make($request->all(), $this->order_status_rules);
+        if ($validator->fails()) {
+            $errors = $validator->errors()->toArray();
+            return _api_json('', ['errors' => $errors], 422);
+        } else {
+            DB::beginTransaction();
+            try {
 
-    private function create_order($order_obj) {
+                if ($OrderDriver) {
+                    $OrderDriver->status = $request->status;
+                    $OrderDriver->save();
+                    $waiting_driver_orders_count = $user->orders()->where('status', 0)->count();
+                    if ($status == 3) {
+                        DB::table('orders')
+                                ->where('id', $OrderDriver->order_id)
+                                ->update(['rejection_reason_id' => $request->rejection_reason]);
+                    }
+                    if ($waiting_driver_orders_count > 0) {
+                        DB::table('orders_drivers')
+                                ->where('status', 0)
+                                ->where('driver_id', $user->id)
+                                ->update(['status' => 2]);
+                    }
+                }
 
-        $order = new Order;
-        $order->user_id = $order_obj->user_id;
-        $order->branch_id = $order_obj->branch_id;
-        $order->address_id = $order_obj->address_id;
-        $order->payment_method = $order_obj->payment_method;
-        $order->total_price = $order_obj->total_price;
-        $order->date = date('Y-m-d');
 
-        $order->save();
-        return $order;
-    }
-    private function updatequantity($id,$quantity) {
-        $sql = "UPDATE products SET quantity = quantity-$quantity WHERE id = $id ";
-        DB::statement($sql);
+
+
+                DB::commit();
+                return _api_json('', ['message' => _lang('app.status_changed')], 201);
+
+                return _api_json('', ['message' => _lang('app.error_is_occured')], 400);
+            } catch (\Exception $ex) {
+                dd($ex);
+                DB::rollback();
+                return _api_json('', ['message' => $ex->getMessage() . $ex->getLine() . $ex->getFile()], 400);
+            }
+        }
     }
 
 }

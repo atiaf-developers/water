@@ -7,13 +7,13 @@ class RejectionReason extends MyModel {
     protected $table = "rejection_reasons";
 
 
-    public static function getAll() {
+    public static function getAllApi() {
         return static::join('rejection_reasons_translations as trans', 'rejection_reasons.id', '=', 'trans.rejection_reason_id')
                         ->orderBy('rejection_reasons.this_order', 'ASC')
                         ->where('rejection_reasons.active',true)
                         ->where('trans.locale', static::getLangCode())
                         ->select('rejection_reasons.id','trans.title')
-                        ->paginate(static::$limit);
+                        ->get();
     }
   
     public static function transform($item)

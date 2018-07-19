@@ -29,7 +29,7 @@ trait ModelTrait {
     }
 
 
-    protected static function transformCollection($items, $type = null) {
+     protected static function transformCollection($items, $type = null, $extra_params = array()) {
 
         $transformers = array();
 
@@ -40,8 +40,11 @@ trait ModelTrait {
         }
         if (count($items)) {
             foreach ($items as $item) {
-
-                $transformers[] = self::$transform($item);
+                if (count($extra_params) > 0) {
+                    $transformers[] = self::$transform($item, $extra_params);
+                } else {
+                    $transformers[] = self::$transform($item);
+                }
             }
         }
 
@@ -83,9 +86,10 @@ trait ModelTrait {
     }
 
     protected static function iniDiffLocations($tableName, $lat, $lng) {
-        $diffLocations = "SQRT(POW(69.1 * ($tableName.lat - {$lat}), 2) + POW(69.1 * ({$lng} - $tableName.lng) * COS($tableName.lat / 57.3), 2)) as distance";
+        $diffLocations = "ROUND(1.609344*SQRT(POW(69.1 * ($tableName.lat - {$lat}), 2) + POW(69.1 * ({$lng} - $tableName.lng) * COS($tableName.lat / 57.3), 2))) as distance";
         return $diffLocations;
     }
+    
 
     protected static function upload($file, $path, $resize = false, $sizes_type = false, $base = false) {
         $image = '';
