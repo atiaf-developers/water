@@ -66,7 +66,7 @@ class BasicController extends ApiController {
             $new=array();
             if($settings->count()>0){
                 foreach($settings as $one){
-                    if($one->name=='about'){
+                    if($one->name=='about'|| $one->name == 'rating_message_active' || $one->name == 'rating_message_not_active'){
                         $value=json_decode($one->value);
                         $one->value=$value->{$this->lang_code};
                     }

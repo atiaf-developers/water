@@ -44,10 +44,18 @@ var Settings = function() {
         var langs = JSON.parse(config.languages);
         for (var x = 0; x < langs.length; x++) {
             var about = "textarea[name='setting[about][" + langs[x] + "]']";
-            console.log(about);
+            var rating_message_active = "textarea[name='setting[rating_message_active][" + langs[x] + "]']";
+            var rating_message_not_active = "textarea[name='setting[rating_message_not_active][" + langs[x] + "]']";
             $(about).rules('add', {
                 required: true
             });
+            $(rating_message_active).rules('add', {
+                required: true
+            });
+            $(rating_message_not_active).rules('add', {
+                required: true
+            });
+            console.log(rating_message_active);
         }
         $('#editSettingsForm .submit-form').click(function() {
             if ($('#editSettingsForm').validate().form()) {
@@ -104,17 +112,24 @@ var Settings = function() {
 
                     } else {
                         console.log(data)
-                        if (typeof data.errors === 'object') {
+                       if (typeof data.errors === 'object') {
                             for (i in data.errors) {
                                 var message = data.errors[i];
-                                if (i.startsWith('title') || i.startsWith('description') || i.startsWith('address') || i.startsWith('about')) {
-                                    var key_arr = i.split('.');
-                                    var key_text = key_arr[0] + '[' + key_arr[1] + ']';
-                                    i = key_text;
+                                var key_arr = i.split('.');
+                                var name = '';
+                                for (var x = 0; x < key_arr.length; x++) {
+                                    if (x == 0) {
+                                        name += key_arr[x];
+                                    } else {
+                                        name += '[' + key_arr[x] + ']';
+                                    }
                                 }
+                                i = name;
+
+
                                 $('[name="' + i + '"]')
-                                    .closest('.form-group').addClass('has-error');
-                                $('#' + i).closest('.form-group').find(".help-block").html(message).css('opacity', 1)
+                                        .closest('.form-group').addClass('has-error');
+                                $('[name="' + i + '"]').closest('.form-group').find(".help-block").html(message).css('opacity', 1);
                             }
                         }
                         if (typeof data.message !== 'undefined') {

@@ -12,7 +12,6 @@ use DB;
 
 class SettingsController extends BackendController {
 
-   
     private $rules = array(
         'setting.email' => 'required|email',
         'setting.phone' => 'required',
@@ -25,14 +24,15 @@ class SettingsController extends BackendController {
 
         $this->data['settings'] = Setting::get()->keyBy('name');
         $this->data['settings']['about'] = json_decode($this->data['settings']['about']->value);
+        $this->data['settings']['rating_message_active'] = json_decode($this->data['settings']['rating_message_active']->value);
+        $this->data['settings']['rating_message_not_active'] = json_decode($this->data['settings']['rating_message_not_active']->value);
         //dd($this->data['settings']);
         return $this->_view('settings/index', 'backend');
     }
 
-
     public function store(Request $request) {
-  
-        $validator = Validator::make($request->all(), $this->lang_rules(['setting.about'=>'required']));
+
+        $validator = Validator::make($request->all(), $this->lang_rules(['setting.about' => 'required', 'setting.rating_message_active' => 'required', 'setting.rating_message_not_active' => 'required']));
         if ($validator->fails()) {
             $errors = $validator->errors()->toArray();
             return _json('error', $errors);
@@ -45,18 +45,19 @@ class SettingsController extends BackendController {
             $setting = $request->input('setting');
 
             $data_update = [];
-         
+
 
             foreach ($setting as $key => $value) {
-                if ($key == 'about') {
-                    $value = json_encode($value);
+                if ($key == 'about' || $key == 'rating_message_active' || $key == 'rating_message_not_active') {
+                    $value = preg_replace("/\r|\n/", "", $value);
+                    $value = json_encode($value, JSON_UNESCAPED_UNICODE);
                 }
                 $data_update['value'][] = [
                     'value' => $value,
                     'cond' => [['name', '=', "'$key'"]],
                 ];
             }
-        
+
             $this->updateValues2('\App\Models\Setting', $data_update, true);
 
             DB::commit();

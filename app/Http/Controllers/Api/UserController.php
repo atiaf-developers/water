@@ -8,6 +8,8 @@ use App\Helpers\AUTHORIZATION;
 use App\Models\User;
 use App\Models\Vehicle;
 use App\Models\Device;
+use App\Models\Order;
+use App\Models\OrderDriver;
 use Validator;
 use DB;
 
@@ -18,6 +20,10 @@ class UserController extends ApiController {
         'vehicle_weight' => 'required',
         'price' => 'required',
         'license_number' => 'required'
+    );
+    private $check_driver_price_rules = array(
+        'vehicle_weight' => 'required',
+        'price' => 'required',
     );
 
     public function __construct() {
@@ -140,7 +146,7 @@ class UserController extends ApiController {
     public function updateLocation(Request $request) {
         try {
             $user = $this->auth_user();
-            $vehicle = Vehicle::where('delegate_id', $user->id)->first();
+            $vehicle = Vehicle::where('driver_id', $user->id)->first();
             if ($vehicle) {
                 $vehicle->lat = $request->lat;
                 $vehicle->lng = $request->lng;
@@ -154,13 +160,60 @@ class UserController extends ApiController {
         }
     }
 
+    public function changeDriverStatus(Request $request) {
+        try {
+
+            $user = $this->auth_user();
+            $current_order = Order::getOrdersApi(['driver' => $user->id, 'status' => OrderDriver::$user_status['driver']['current']]);
+            //dd($current_order);
+            if ($current_order->count() > 0) {
+                return _api_json('', ['message' => _lang('app.you_have_an_order_running')]);
+            }
+            $vehicle = Vehicle::where('driver_id', $user->id)->first();
+            //dd($vehicle);
+            if ($vehicle) {
+                $vehicle->is_ready = $vehicle->is_ready == 1 ? 0 : 1;
+                $vehicle->save();
+            }
+
+            return _api_json('');
+        } catch (\Exception $e) {
+            $message = _lang('app.error_is_occured');
+            return _api_json('', ['message' => $message], 400);
+        }
+    }
+
+    public function checkDriverPrice(Request $request) {
+        $validator = Validator::make($request->all(), $this->check_driver_price_rules);
+        if ($validator->fails()) {
+            $errors = $validator->errors()->toArray();
+            return _api_json(new \stdClass(), ['errors' => $errors], 400);
+        } else {
+
+            try {
+                $vehicle = Vehicle::where('vehicle_weight_id', $request->input('vehicle_weight'))
+                        ->where('price', '<', $request->input('price'))
+                        ->first();
+                $vehicle_obj = new \stdClass();
+                if($vehicle){
+                     $vehicle_obj->price=$vehicle->price;
+                }
+               
+                return _api_json($vehicle_obj);
+            } catch (\Exception $e) {
+                $message = _lang('app.error_is_occured');
+                return _api_json(new \stdClass(), ['message' => $e->getMessage()], 400);
+            }
+        }
+    }
+
     public function getNearestDrivers(Request $request) {
         try {
 //            dd(137*0.621);
             //dd(GetDrivingDistance(30.01548800, 31.24428800, 30.03727100, 30.03727100));
 //            dd(GetDrivingDistance(30.03727100, 30.03727100,30.01548800, 31.24428800));
 
-            $drivers = User::getAllNearestDriversApi(['lat' => $request->lat, 'lng' => $request->lng,'vehicle_type'=>$request->vehicle_type]);
+            $drivers = User::getAllNearestDriversApi(['lat' => $request->lat, 'lng' => $request->lng, 'vehicle_type' => $request->vehicle_type]);
             return _api_json($drivers);
         } catch (\Exception $e) {
             dd($e);

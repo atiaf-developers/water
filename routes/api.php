@@ -56,6 +56,9 @@ Route::group(['namespace' => 'Api'], function () {
         Route::get('notifications', 'NotificationsController@index');
         Route::get('noti_count', 'NotificationsController@getUnReadNoti');
         Route::post('update_location', 'UserController@updateLocation');
+        Route::post('change_driver_status', 'UserController@changeDriverStatus');
+        Route::get('check_driver_price', 'UserController@checkDriverPrice');
         Route::post('orders/status', 'OrdersController@changeOrderStatus');
+        Route::post('orders/rate', 'OrdersController@rate');
     });
 });

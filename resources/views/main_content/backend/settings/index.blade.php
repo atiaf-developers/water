@@ -17,7 +17,7 @@
 @section('content')
 <form role="form"  id="editSettingsForm"  enctype="multipart/form-data">
     {{ csrf_field() }}
-    <div class="panel panel-default" id="editSiteSettings">
+    <div class="panel panel-default">
         <div class="panel-heading">
             <h3 class="panel-title">{{_lang('app.basic_info') }}</h3>
         </div>
@@ -73,7 +73,107 @@
         </div>
 
     </div>
-    <div class="panel panel-default" id="editSiteSettings">
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h3 class="panel-title">{{_lang('app.rating_message_when_active') }}</h3>
+        </div>
+        <div class="panel-body">
+
+
+            <div class="form-body">
+
+                @foreach ($languages as $key => $value)
+                <div class="panel panel-default">
+       
+                    <div class="panel-body">
+
+                        <div class="form-body">
+                            <div class="col-md-12">
+                                <div class="form-group form-md-line-input">
+                                    <textarea class="form-control" id="rating_message_active_{{ $key }}" name="setting[rating_message_active][{{ $key }}]"  cols="30" rows="10">{{isset($settings['rating_message_active']->{$key})?$settings['rating_message_active']->{$key}:''}} </textarea>
+                                    <label for="rating_message_active_{{ $key }}">{{ _lang('app.'.$value) }}</label>
+                                    <span class="help-block"></span>
+                                </div>
+                            </div>
+                        </div>
+
+
+
+
+                        <!--Table Wrapper Finish-->
+                    </div>
+
+                </div>
+                @endforeach
+
+
+
+                <div class="clearfix"></div>
+
+
+
+
+            </div>
+
+
+
+
+            <!--Table Wrapper Finish-->
+        </div>
+ 
+
+    </div>
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h3 class="panel-title">{{_lang('app.rating_message_when_not_active') }}</h3>
+        </div>
+        <div class="panel-body">
+
+
+            <div class="form-body">
+
+                @foreach ($languages as $key => $value)
+                <div class="panel panel-default">
+       
+                    <div class="panel-body">
+
+                        <div class="form-body">
+                            <div class="col-md-12">
+                                <div class="form-group form-md-line-input">
+                                    <textarea class="form-control" id="rating_message_active_{{ $key }}" name="setting[rating_message_not_active][{{ $key }}]"  cols="30" rows="10">{{isset($settings['rating_message_not_active']->{$key})?$settings['rating_message_not_active']->{$key}:''}} </textarea>
+                                    <label for="rating_message_not_active_{{ $key }}">{{ _lang('app.'.$value) }}</label>
+                                    <span class="help-block"></span>
+                                </div>
+                            </div>
+                        </div>
+
+
+
+
+                        <!--Table Wrapper Finish-->
+                    </div>
+
+                </div>
+                @endforeach
+
+
+
+                <div class="clearfix"></div>
+
+
+
+
+            </div>
+
+
+
+
+            <!--Table Wrapper Finish-->
+        </div>
+ 
+
+    </div>
+    <div class="panel panel-default">
         <div class="panel-heading">
             <h3 class="panel-title">{{_lang('app.about') }}</h3>
         </div>

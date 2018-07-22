@@ -9,6 +9,7 @@ class Vehicle extends MyModel {
 
     protected $table = "vehicles";
 
+    
     public static function transform($item) {
         $lang_code = static::getLangCode();
         $transformer = new \stdClass();
@@ -23,6 +24,8 @@ class Vehicle extends MyModel {
         $transformer->vehicleTypeTitle = $item->vehicleTypeTitle;
         $transformer->vehicleWeightTitle = $item->vehicleWeightTitle;
         $transformer->licenseNumber = $item->license_number;
+        $transformer->vehicleRating = $item->vehicleRating;
+        $transformer->totalRates = $item->total_rates;
         $transformer->price = $item->price;
         return $transformer;
     }
