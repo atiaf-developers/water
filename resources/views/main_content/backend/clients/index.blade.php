@@ -11,9 +11,7 @@
 @section('content')
  {{ csrf_field() }}
 <div class = "panel panel-default">
-    <div class = "panel-heading">
-        <h3 class = "panel-title">{{_lang('app.clients')}}</h3>
-    </div>
+ 
     <div class = "panel-body">
         <!--Table Wrapper Start-->
 
@@ -22,6 +20,7 @@
             <table class = "table table-responsive table-striped table-bordered table-hover table-checkable order-column dataTable no-footer">
                 <thead>
                     <tr>
+                        <th>{{_lang('app.id')}}</th>
                         <th width="20%;">{{_lang('app.name')}}</th>
                         <th>{{_lang('app.mobile')}}</th>
                         <th>{{_lang('app.email')}}</th>

@@ -4,139 +4,10 @@ var Orders = function () {
     var init = function () {
 
         handleReport();
-        handleSubmit();
+   
 
     };
-    var handleSubmit = function () {
 
-        $('#orderStatusForm').validate({
-            rules: {
-
-                reply:{
-                    required: true
-                }
-               
-            },
-            //messages: lang.messages,
-            highlight: function (element) { // hightlight error inputs
-                $(element).closest('.form-group').removeClass('has-success').addClass('has-error');
-
-            },
-            unhighlight: function (element) {
-                $(element).closest('.form-group').removeClass('has-error').addClass('has-success');
-                $(element).closest('.form-group').find('.help-block').html('').css('opacity', 0);
-
-            },
-            errorPlacement: function (error, element) {
-                $(element).closest('.form-group').find('.help-block').html($(error).html()).css('opacity', 1);
-            }
-        });
-        $('#orderStatusForm .submit-form').click(function () {
-            if ($('#orderStatusForm').validate().form()) {
-                $('#orderStatusForm .submit-form').prop('disabled', true);
-                $('#orderStatusForm .submit-form').html('<i class="fa fa-spinner fa-spin fa-2x fa-fw"></i><span class="sr-only">Loading...</span>');
-                setTimeout(function () {
-                    $('#orderStatusForm').submit();
-                }, 1000);
-
-            }
-            return false;
-        });
-        $('#orderStatusForm input').keypress(function (e) {
-            if (e.which == 13) {
-                if ($('#orderStatusForm').validate().form()) {
-                    $('#orderStatusForm .submit-form').prop('disabled', true);
-                    $('#orderStatusForm .submit-form').html('<i class="fa fa-spinner fa-spin fa-2x fa-fw"></i><span class="sr-only">Loading...</span>');
-                    setTimeout(function () {
-                        $('#orderStatusForm').submit();
-                    }, 1000);
-                }
-                return false;
-            }
-        });
-
-
-
-        $('#orderStatusForm').submit(function () {
-            var formData = new FormData($(this)[0]);
-            var action = config.admin_url + '/orders_reports/reply';
-
-
-            $.ajax({
-                url: action,
-                type: 'post',
-                data: formData,
-                async: false,
-                cache: false,
-                contentType: false,
-                processData: false,
-                success: function (data) {
-                    $('#orderStatusForm .submit-form').prop('disabled', false);
-                    $('#orderStatusForm .submit-form').html(lang.save);
-
-                    if (data.type == 'success')
-                    {
-                        toastr.options = {
-                            "debug": false,
-                            "positionClass": "toast-bottom-left",
-                            "onclick": null,
-                            "fadeIn": 300,
-                            "fadeOut": 1000,
-                            "timeOut": 5000,
-                            "extendedTimeOut": 1000,
-                            "showEasing": "swing",
-                            "hideEasing": "linear",
-                            "showMethod": "fadeIn",
-                            "hideMethod": "fadeOut"
-                        };
-                        toastr.success(data.message, 'رسالة');
-                        location.reload();
-                       // console.log(data);
-                    } else {
-                        console.log(data)
-                        if (typeof data.errors === 'object') {
-                            for (i in data.errors)
-                            {
-                                $('[name="' + i + '"]')
-                                        .closest('.form-group').addClass('has-error');
-                                $('#' + i).closest('.form-group').find(".help-block").html(data.errors[i][0]).css('opacity', 1)
-                            }
-                        } else {
-                            //alert('here');
-                            $.confirm({
-                                title: lang.error,
-                                content: data.message,
-                                type: 'red',
-                                typeAnimated: true,
-                                buttons: {
-                                    tryAgain: {
-                                        text: lang.try_again,
-                                        btnClass: 'btn-red',
-                                        action: function () {
-                                        }
-                                    }
-                                }
-                            });
-                        }
-                    }
-                },
-                error: function (xhr, textStatus, errorThrown) {
-                    $('#orderStatusForm .submit-form').prop('disabled', false);
-                    $('#orderStatusForm .submit-form').html(lang.save);
-                    My.ajax_error_message(xhr);
-                },
-                dataType: "json",
-                type: "POST"
-            });
-
-            return false;
-
-        })
-
-
-
-
-    }
  
     var handleReport = function () {
         $('.btn-report').on('click', function () {
@@ -187,6 +58,23 @@ var Orders = function () {
     return {
         init: function () {
             init();
+        },
+         closed: function (t) {
+            var order_id = $(t).data("id");
+            $(t).prop('disabled', true);
+            $(t).html('<i class="fa fa-spinner fa-spin fa-2x fa-fw"></i><span class="sr-only">Loading...</span>');
+
+            $.ajax({
+                url: config.admin_url + '/orders_reports/closed/' + order_id,
+                success: function (data) {
+
+                    location.reload()
+                },
+                error: function (xhr, textStatus, errorThrown) {
+                    My.ajax_error_message(xhr);
+                },
+            });
+
         },
 
     

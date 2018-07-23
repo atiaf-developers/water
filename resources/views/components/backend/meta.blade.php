@@ -69,14 +69,14 @@
 <link rel="shortcut icon" href="{{url('public/backend/images')}}/favicon.png" />
 <link href="{{url('public/backend/plugins')}}/bootstrap-datetimepicker/css/bootstrap-datetimepicker.min.css" rel="stylesheet" type="text/css" />
 @if ($lang_code == 'ar')
-    <style>
-     .datetimepicker {
-         float: right
-      }
-     .datetimepicker.dropdown-menu {
+<style>
+    .datetimepicker {
+        float: right
+    }
+    .datetimepicker.dropdown-menu {
         right:auto
-      }
-    </style>
+    }
+</style>
 @endif
 
 
@@ -92,6 +92,9 @@
         languages: '{!!json_encode(array_keys($languages))!!}',
     }
     var lang = {
+        arabic_letters_only_please: "{{ _lang('app.arabic_letters_only_please') }}",
+        english_letters_only_please: "{{ _lang('app.english_letters_only_please') }}",
+        arabic_number_only_please: "{{ _lang('app.arabic_number_only_please') }}",
         view: "{{ _lang('app.view')}}",
         attention_message: "{{ _lang('app.attention_message')}}",
         daily_message: "{{ _lang('app.do_you_want_to_review_delegates_daily_report_?')}}",

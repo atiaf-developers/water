@@ -69,9 +69,9 @@ Route::group(['namespace' => 'Admin', 'prefix' => 'admin'], function () {
     Route::resource('categories', 'CategoriesController');
     Route::post('categories/data', 'CategoriesController@data');
 
-    Route::resource('delegates', 'DelegatesController');
-    Route::post('delegates/data', 'DelegatesController@data');
-     Route::get('delegates/status/{id}', 'DelegatesController@status');
+    Route::resource('drivers', 'DriversController');
+    Route::post('drivers/data', 'DriversController@data');
+     Route::get('drivers/status/{id}', 'DriversController@status');
 
     Route::resource('rejection_reasons', 'RejectionReasonsController');
     Route::post('rejection_reasons/data', 'RejectionReasonsController@data');
@@ -92,7 +92,7 @@ Route::group(['namespace' => 'Admin', 'prefix' => 'admin'], function () {
     Route::get('products/{id}/gallery', 'ProductsController@gallery');
     Route::post('products/upload', 'ProductsController@upload');
     Route::resource('orders_reports', 'OrdersReportsController');
-    Route::post('orders_reports/reply', 'OrdersReportsController@reply');
+    Route::get('orders_reports/closed/{id}', 'OrdersReportsController@closed');
     Route::get('settings', 'SettingsController@index');
 
 

@@ -16,13 +16,13 @@ use DB;
 
 class OrdersController extends ApiController {
 
-     use Rate;
+    use Rate;
+
     private $new_order_rules = array(
         'driver' => 'required',
         'lat' => 'required',
         'lng' => 'required',
         'payment_method' => 'required',
-    
     );
     private $change_driver_rules = array(
         'driver' => 'required',
@@ -31,7 +31,7 @@ class OrdersController extends ApiController {
         'order' => 'required',
         'status' => 'required',
     );
-     private $rate_rules = array(
+    private $rate_rules = array(
         'order' => 'required',
         'score' => 'required',
     );
@@ -43,7 +43,7 @@ class OrdersController extends ApiController {
     public function index(Request $request) {
         try {
             $user = $this->auth_user();
-            //dd($user->type);
+           
             $where_array['user_type'] = $user->type;
             if ($user) {
                 if ($user->type == 1) {
@@ -74,7 +74,7 @@ class OrdersController extends ApiController {
             }
             $orders = Order::getOrdersApi($where_array);
             $info = Order::getOrderInfoApi($where_array);
-            return _api_json(['orders'=>$orders,'info'=>$info]);
+            return _api_json(['orders' => $orders, 'info' => $info]);
         } catch (\Exception $e) {
             $message = _lang('app.error_is_occured');
             return _api_json([], ['message' => $e->getMessage()], 400);
@@ -84,7 +84,7 @@ class OrdersController extends ApiController {
     public function current(Request $request) {
         try {
             $user = $this->auth_user();
-            //dd($user->type);
+        
             $where_array = array();
             if ($user) {
                 if ($user->type == 1) {
@@ -173,12 +173,19 @@ class OrdersController extends ApiController {
                     $order->lng = $request->input('lng');
                     $order->date = date('Y-m-d');
                     $order->save();
+                }else{
+                   OrderDriver::where('order_id',$order->id)->where('is_final_destination',1)->update(['is_final_destination' => 0]);  
                 }
+                 
                 $OrderDriver = new OrderDriver;
                 $OrderDriver->order_id = $order->id;
                 $OrderDriver->driver_id = $request->input('driver');
                 $OrderDriver->status = 0;
+                $OrderDriver->is_final_destination = 1;
                 $OrderDriver->save();
+
+                Vehicle::where('driver_id', $request->input('driver'))->update(['is_ready' => 0]);
+              
                 DB::commit();
 
                 return _api_json('', ['message' => _lang('app.sent_successfully'), 'order_id' => $order->id]);
@@ -192,8 +199,14 @@ class OrdersController extends ApiController {
 
     public function changeOrderStatus(Request $request) {
         $user = $this->auth_user();
+        //dd($user->id);
+        if ($user->type == 2) {
+            $OrderDriver = OrderDriver::where('order_id', $request->order)->where('driver_id', $user->id)->first();
+        } else {
+            $OrderDriver = OrderDriver::where('order_id', $request->order)->orderBy('created_at', 'desc')->first();
+            //dd($OrderDriver);
+        }
 
-        $OrderDriver = OrderDriver::where('order_id', $request->order)->where('driver_id', $user->id)->first();
         $status = $request->status;
         if (!$OrderDriver) {
             return _api_json('', ['message' => _lang('app.error_is_occured')], 400);
@@ -209,22 +222,34 @@ class OrdersController extends ApiController {
             DB::beginTransaction();
             try {
 
-                if ($OrderDriver) {
-                    $OrderDriver->status = $request->status;
-                    $OrderDriver->save();
+
+                $OrderDriver->status = $request->status;
+                $OrderDriver->save();
+
+
+                //update with rejecion reason
+                if ($status == 3) {
+                    DB::table('orders')
+                            ->where('id', $OrderDriver->order_id)
+                            ->update(['rejection_reason_id' => $request->rejection_reason]);
+                }
+
+                //update other orders of driver to be not accepted
+                if ($user->type == 2) {
                     $waiting_driver_orders_count = $user->orders()->where('status', 0)->count();
-                    if ($status == 3) {
-                        DB::table('orders')
-                                ->where('id', $OrderDriver->order_id)
-                                ->update(['rejection_reason_id' => $request->rejection_reason]);
-                    }
                     if ($waiting_driver_orders_count > 0) {
                         DB::table('orders_drivers')
                                 ->where('status', 0)
-                                ->where('driver_id', $user->id)
+                                ->where('driver_id', $OrderDriver->driver_id)
                                 ->update(['status' => 2]);
                     }
                 }
+                if (in_array($status, [2, 3, 4])) {
+                    Vehicle::where('driver_id', $OrderDriver->driver_id)->update(['is_ready' => 1]);
+                }
+
+
+
 
 
 
@@ -240,7 +265,7 @@ class OrdersController extends ApiController {
             }
         }
     }
-    
+
     public function rate(Request $request) {
 
         $validator = Validator::make($request->all(), $this->rate_rules);
@@ -254,7 +279,7 @@ class OrdersController extends ApiController {
                 if ($order) {
                     $order->rating = $request->score;
                     $order->save();
-                    $driver=$order->drivers()->orderBy('orders_drivers.created_at','desc')->first();
+                    $driver = $order->drivers()->orderBy('orders_drivers.created_at', 'desc')->first();
                     //dd($driver->vehicle);
                     $this->new_rate($driver->vehicle->id, $request->score, $this->auth_user()->id, $request->comment);
                     $driver->vehicle->rating = $this->countRates($driver->vehicle->id);

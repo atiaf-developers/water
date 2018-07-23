@@ -25,7 +25,7 @@ class Vehicle extends MyModel {
         $transformer->vehicleWeightTitle = $item->vehicleWeightTitle;
         $transformer->licenseNumber = $item->license_number;
         $transformer->vehicleRating = $item->vehicleRating;
-        $transformer->totalRates = $item->total_rates;
+        $transformer->totalRates = $item->total_rates?$item->total_rates:0;
         $transformer->price = $item->price;
         return $transformer;
     }

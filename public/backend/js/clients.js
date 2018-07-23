@@ -21,7 +21,8 @@ var Clients = function () {
                 data: {_token: $('input[name="_token"]').val()},
             },
             "columns": [
-                {"data": "name"},
+                {"data": "id"},
+                {"data": "username"},
                 {"data": "mobile"},
                 {"data": "email"},
                 {"data": "image"},

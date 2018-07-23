@@ -37,7 +37,7 @@
                             <tbody>
                                 <tr>
                                     <td>{{ _lang('app.name')}}</td>
-                                    <td>{{$user->name}}</td>
+                                    <td>{{$user->username}}</td>
 
                                 </tr>
                                 <tr>

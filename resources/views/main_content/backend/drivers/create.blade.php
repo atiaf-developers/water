@@ -4,15 +4,16 @@
 
 @section('breadcrumb')
 <li><a href="{{url('admin')}}">{{_lang('app.dashboard')}}</a> <i class="fa fa-circle"></i></li>
-<li><a href="{{route('delegates.index')}}">{{_lang('app.delegates')}}</a> <i class="fa fa-circle"></i></li>
+<li><a href="{{route('drivers.index')}}">{{_lang('app.drivers')}}</a> <i class="fa fa-circle"></i></li>
 <li><span> {{_lang('app.add')}}</span></li>
 @endsection
 
 @section('js')
-<script src="{{url('public/backend/js')}}/delegates.js" type="text/javascript"></script>
+<script src="{{url('public/backend/js')}}/persian.js" type="text/javascript"></script>
+<script src="{{url('public/backend/js')}}/drivers.js" type="text/javascript"></script>
 @endsection
 @section('content')
-<form role="form"  id="addEditDelegatesForm" enctype="multipart/form-data">
+<form role="form"  id="addEditDriversForm" enctype="multipart/form-data">
     {{ csrf_field() }}
 
     <div class="panel panel-default">
@@ -24,12 +25,12 @@
 
             <div class="form-body">
                 <input type="hidden" name="id" id="id" value="0">
-                <div class="col-md-12">
+                <div class="col-md-8">
                     <div class="col-sm-6">
                         <div class="row">
                             <label class="col-sm-12 inputbox utbox control-label">{{_lang('app.letters_in_english')}} </label>
                             <div class="col-sm-12">
-                                <div class="form-group col-sm-2 inputbox ">
+                                <div class="form-group col-sm-2 inputbox">
                                     <input type="text" class="form-control" name="letter_english[0]" value="">
                                     <span class="help-block"></span>
                                 </div>
@@ -123,7 +124,64 @@
 
 
                 </div>
+                <div class="col-md-4">
+                    <div class="form-group form-md-line-input col-md-6">
+                        <select class="form-control" id="vehicle_type" name="vehicle_type">
+                            <option  value="">{{ _lang('app.choose') }}</option>
+                            @foreach ($vehicle_types as $type)
+                            <option  value="{{ $type->id }}">{{ $type->title }}</option>
+                            @endforeach
 
+                        </select>
+                        <label for="vehicle_type">{{_lang('app.vehicle_type') }}</label>
+                        <span class="help-block"></span>
+                    </div>
+
+                    <div class="form-group form-md-line-input col-md-6">
+                        <select class="form-control" id="vehicle_weight" name="vehicle_weight">
+                            <option  value="">{{ _lang('app.choose') }}</option>
+                            @foreach ($vehicle_weights as $weight)
+                            <option  value="{{ $weight->id }}">{{ $weight->title }}</option>
+                            @endforeach
+
+                        </select>
+                        <label for="vehicle_weight">{{_lang('app.vehicle_weight') }}</label>
+                        <span class="help-block"></span>
+                    </div>
+
+                    <div class="form-group form-md-line-input col-md-6">
+                        <input type="number" class="form-control" id="license_number" name="license_number" value="">
+                        <label for="license_number">{{_lang('app.license_number') }}</label>
+                        <span class="help-block"></span>
+                    </div>
+
+                    <div class="form-group form-md-line-input col-md-6">
+                        <input type="number" class="form-control" id="price" name="price" value="">
+                        <label for="price">{{_lang('app.price') }}</label>
+                        <span class="help-block"></span>
+                    </div>
+
+
+                    <div class="form-group col-md-6">
+                        <label class="control-label">{{_lang('app.vehicle_image')}}</label>
+
+                        <div class="vehicle_image_box">
+                            <img src="{{url('no-image.png')}}" width="100" height="80" class="vehicle_image" />
+                        </div>
+                        <input type="file" name="vehicle_image" id="vehicle_image" style="display:none;">     
+                        <span class="help-block"></span>             
+                    </div>
+
+                    <div class="form-group col-md-6">
+                        <label class="control-label">{{_lang('app.license_image')}}</label>
+
+                        <div class="license_image_box">
+                            <img src="{{url('no-image.png')}}" width="100" height="80" class="license_image" />
+                        </div>
+                        <input type="file" name="license_image" id="license_image" style="display:none;">     
+                        <span class="help-block"></span>             
+                    </div>
+                </div>
                 <!--Table Wrapper Finish-->
             </div>
         </div>
@@ -132,81 +190,14 @@
     </div>
 
 
-    <div class="panel panel-default">
-         
-        <div class="panel-body">
-            <div class="form-body">
-
-              <div class="form-group form-md-line-input col-md-3">
-                    <select class="form-control edited" id="vehicle_type" name="vehicle_type">
-                        <option  value="">{{ _lang('app.choose') }}</option>
-                        @foreach ($vehicle_types as $type)
-                            <option  value="{{ $type->id }}">{{ $type->title }}</option>
-                        @endforeach
-                        
-                    </select>
-                    <label for="vehicle_type">{{_lang('app.vehicle_type') }}</label>
-                    <span class="help-block"></span>
-                </div>
-
-                <div class="form-group form-md-line-input col-md-3">
-                    <select class="form-control edited" id="vehicle_weight" name="vehicle_weight">
-                        <option  value="">{{ _lang('app.choose') }}</option>
-                        @foreach ($vehicle_weights as $weight)
-                            <option  value="{{ $weight->id }}">{{ $weight->title }}</option>
-                        @endforeach
-                        
-                    </select>
-                    <label for="vehicle_weight">{{_lang('app.vehicle_weight') }}</label>
-                    <span class="help-block"></span>
-                </div>
-
-                <div class="form-group form-md-line-input col-md-4">
-                    <input type="number" class="form-control" id="license_number" name="license_number" value="">
-                    <label for="license_number">{{_lang('app.license_number') }}</label>
-                    <span class="help-block"></span>
-                </div>
-
-                <div class="form-group form-md-line-input col-md-4">
-                    <input type="number" class="form-control" id="price" name="price" value="">
-                    <label for="price">{{_lang('app.price') }}</label>
-                    <span class="help-block"></span>
-                </div>
-
-
-                <div class="form-group col-md-3">
-                    <label class="control-label">{{_lang('app.vehicle_image')}}</label>
-
-                    <div class="vehicle_image_box">
-                        <img src="{{url('no-image.png')}}" width="100" height="80" class="vehicle_image" />
-                    </div>
-                    <input type="file" name="vehicle_image" id="vehicle_image" style="display:none;">     
-                    <span class="help-block"></span>             
-                </div>
-
-                <div class="form-group col-md-3">
-                    <label class="control-label">{{_lang('app.license_image')}}</label>
-
-                    <div class="license_image_box">
-                        <img src="{{url('no-image.png')}}" width="100" height="80" class="license_image" />
-                    </div>
-                    <input type="file" name="license_image" id="license_image" style="display:none;">     
-                    <span class="help-block"></span>             
-                </div>
-
-                <div class="clearfix"></div>
-
-            </div>
-        </div>
-
-    </div>
+    
 
 
 
 
     <div class="panel panel-default">
-         <div class="panel-heading">
-            <h3 class="panel-title">{{_lang('app.delegate_info') }}</h3>
+        <div class="panel-heading">
+            <h3 class="panel-title">{{_lang('app.driver_info') }}</h3>
         </div>
         <div class="panel-body">
 
@@ -262,7 +253,7 @@
 
         <div class="panel-footer text-center">
             <button type="button" class="btn btn-info submit-form"
-            >{{_lang('app.save') }}</button>
+                    >{{_lang('app.save') }}</button>
         </div>
 
 
@@ -271,11 +262,11 @@
 
 </form>
 <script>
-    var new_lang = {
-    };
-    var new_config = {
-       action:'add'
-   };
+var new_lang = {
+};
+var new_config = {
+    action: 'add'
+};
 
 </script>
 @endsection

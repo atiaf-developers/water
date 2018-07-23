@@ -25,14 +25,14 @@ class User extends Authenticatable {
     public function vehicle() {
         $lang_code = static::getLangCode();
         return $this->hasOne(Vehicle::class, 'driver_id', 'id')
-                        ->join('rating', 'vehicles.id', 'rating.entity_id')
+                        ->leftJoin('rating', 'vehicles.id', 'rating.entity_id')
                         ->join('vehicle_types', 'vehicle_types.id', 'vehicles.vehicle_type_id')
                         ->join('vehicle_types_translations', 'vehicle_types.id', 'vehicle_types_translations.vehicle_type_id')
                         ->join('vehicle_weights', 'vehicle_weights.id', 'vehicles.vehicle_weight_id')
                         ->join('vehicle_weights_translations', 'vehicle_weights.id', 'vehicle_weights_translations.vehicle_weight_id')
                         ->where('vehicle_types_translations.locale', $lang_code)
                         ->where('vehicle_weights_translations.locale', $lang_code)
-                        ->select('vehicles.*','rating.total_rates', 'vehicle_types.id as vehicleTypeId', 'vehicle_types_translations.title as vehicleTypeTitle', 'vehicle_weights.id as vehicleWeightId', "vehicles.rating as vehicleRating", 'vehicle_weights_translations.title as vehicleWeightTitle');
+                        ->select('vehicles.*', 'rating.total_rates', 'vehicle_types.id as vehicleTypeId', 'vehicle_types_translations.title as vehicleTypeTitle', 'vehicle_weights.id as vehicleWeightId', "vehicles.rating as vehicleRating", 'vehicle_weights_translations.title as vehicleWeightTitle');
     }
 
     public function orders() {
@@ -42,25 +42,31 @@ class User extends Authenticatable {
 
     public static function getAllNearestDriversApi($where_array = array()) {
         $setting = Setting::where('name', 'map_range')->orWhere('name', 'commission')->get()->keyBy('name');
-        $data = Vehicle::join('users', 'users.id', '=', 'vehicles.driver_id')
-                ->leftJoin('orders_drivers', 'users.id', '=', 'orders_drivers.driver_id')
-                ->join('vehicle_types', 'vehicle_types.id', '=', 'vehicles.vehicle_type_id')
-                ->join('vehicle_types_translations', 'vehicle_types.id', '=', 'vehicle_types_translations.vehicle_type_id')
-                ->join('vehicle_weights', 'vehicle_weights.id', '=', 'vehicles.vehicle_weight_id')
-                ->join('vehicle_weights_translations', 'vehicle_weights.id', '=', 'vehicle_weights_translations.vehicle_weight_id')
-                ->where(function ($query) {
-                    $query->whereNull('orders_drivers.id')
+        $data = Vehicle::join('users', 'users.id', '=', 'vehicles.driver_id');
+        $data->leftJoin('orders_drivers', 'users.id', '=', 'orders_drivers.driver_id');
+        $data->join('vehicle_types', 'vehicle_types.id', '=', 'vehicles.vehicle_type_id');
+        $data->join('vehicle_types_translations', 'vehicle_types.id', '=', 'vehicle_types_translations.vehicle_type_id');
+        $data->join('vehicle_weights', 'vehicle_weights.id', '=', 'vehicles.vehicle_weight_id');
+        $data->join('vehicle_weights_translations', 'vehicle_weights.id', '=', 'vehicle_weights_translations.vehicle_weight_id');
+        $data->where(function ($query) {
+            $query->whereNull('orders_drivers.id')
                     ->orWhereIn('orders_drivers.status', [0, 2, 3, 4, 7]);
-                })
-                ->where('vehicle_types_translations.locale', static::getLangCode())
-                ->where('vehicle_weights_translations.locale', static::getLangCode())
-                ->where('vehicles.is_ready', 1)
-                ->where('vehicle_types.id', $where_array['vehicle_type'])
-                ->select('users.id', 'vehicles.vehicle_image as vehicleImage', 'vehicles.price', 'vehicle_types_translations.title as vehicleTypeTitle', "vehicles.rating as vehicleRating", 'vehicle_weights_translations.title as vehicleWeightTitle', 'vehicles.lat', 'vehicles.lng', DB::raw(static::iniDiffLocations('vehicles', $where_array['lat'], $where_array['lng'])))
-                ->groupBy('vehicles.id')
-                ->orderBy('distance', 'ASC')
-                ->having('distance', '<=', $setting['map_range']->value)
-                ->get();
+        });
+        $data->where('vehicle_types_translations.locale', static::getLangCode());
+        $data->where('vehicle_weights_translations.locale', static::getLangCode());
+        //$data->where('vehicles.is_ready', 1);
+        if(isset($where_array['price_from'])){
+            $data->where('vehicles.price','>=', $where_array['price_from']);
+        }
+        if(isset($where_array['price_to'])){
+            $data->where('vehicles.price','<=', $where_array['price_to']);
+        }
+        $data->where('vehicle_types.id', $where_array['vehicle_type']);
+        $data->select('users.id', 'vehicles.vehicle_image as vehicleImage', 'vehicles.price', 'vehicle_types_translations.title as vehicleTypeTitle', "vehicles.rating as vehicleRating", 'vehicle_weights_translations.title as vehicleWeightTitle', 'vehicles.lat', 'vehicles.lng', DB::raw(static::iniDiffLocations('vehicles', $where_array['lat'], $where_array['lng'])));
+        $data->groupBy('vehicles.id');
+        $data->orderBy('distance', 'ASC');
+        $data->having('distance', '<=', $setting['map_range']->value);
+        $data=$data->get();
         // dd($data);
         $data = static::transformCollection($data, 'NearestDriversApi', ['commission' => $setting['commission']->value, 'lat' => $where_array['lat'], 'lng' => $where_array['lng']]);
         return $data;

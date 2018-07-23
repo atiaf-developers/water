@@ -20,12 +20,13 @@ class ClientsController extends BackendController {
     public function index(Request $request) {
         return $this->_view('clients/index', 'backend');
     }
+
     public function show($id) {
         $User = User::find($id);
         if ($User == null) {
             return $this->err404();
         }
-        $this->data['user']=$User;
+        $this->data['user'] = $User;
         return $this->_view('clients/view', 'backend');
     }
 
@@ -64,7 +65,7 @@ class ClientsController extends BackendController {
     }
 
     public function data(Request $request) {
-        $user = User::select(['id', 'created_at', 'email', 'mobile','name',
+        $user = User::where('type', 1)->select(['id', 'created_at', 'email', 'mobile', 'username',
             'image', 'active']);
 
 
@@ -75,31 +76,12 @@ class ClientsController extends BackendController {
             $back = "";
 
             if (\Permissions::check('clients', 'view') || \Permissions::check('clients', 'delete')) {
-                $back .= '<div class="btn-group">';
-                $back .= ' <button class="btn btn-xs green dropdown-toggle" type="button" data-toggle="dropdown" aria-expanded="false"> options';
-                $back .= '<i class="fa fa-angle-down"></i>';
-                $back .= '</button>';
-                $back .= '<ul class = "dropdown-menu" role = "menu">';
                 if (\Permissions::check('clients', 'view')) {
-                    $back .= '<li>';
-                    $back .= '<a href="' . url('admin/clients/' . $item->id) . '" data-id = "' . $item->id . '">';
-                    $back .= '<i class = "icon-docs"></i>' . _lang('app.view');
-                    $back .= '</a>';
-                    $back .= '</li>';
+                    $back .= '<a href="' . url('admin/clients/' . $item->id) . '" class="btn btn-xs blue"><i class="fa fa-eye"></i> ' . _lang('app.view') . ' </a>';
                 }
-
                 if (\Permissions::check('clients', 'delete')) {
-                    $back .= '<li>';
-                    $back .= '<a href="" data-toggle="confirmation" onclick = "Clients.delete(this);return false;" data-id = "' . $item->id . '">';
-                    $back .= '<i class = "icon-docs"></i>' . _lang('app.delete');
-                    $back .= '</a>';
-                    $back .= '</li>';
+                    $back .= '<a href="javascript:;" onclick = "Clients.delete(this);return false;" class="btn btn-xs red"><i class="fa fa-trash-o"></i> ' . _lang('app.delete') . ' </a>';
                 }
-
-
-
-                $back .= '</ul>';
-                $back .= ' </div>';
             }
 
 
@@ -109,7 +91,7 @@ class ClientsController extends BackendController {
             $back = '<img src="' . url('public/uploads/users/' . $item->image) . '" style="height:64px;width:64px;"/>';
             return $back;
         });
- 
+
         $datatable->addColumn('active', function ($item) {
             if ($item->active == 1) {
                 $message = _lang('app.active');

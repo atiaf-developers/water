@@ -212,8 +212,14 @@ class UserController extends ApiController {
 //            dd(137*0.621);
             //dd(GetDrivingDistance(30.01548800, 31.24428800, 30.03727100, 30.03727100));
 //            dd(GetDrivingDistance(30.03727100, 30.03727100,30.01548800, 31.24428800));
-
-            $drivers = User::getAllNearestDriversApi(['lat' => $request->lat, 'lng' => $request->lng, 'vehicle_type' => $request->vehicle_type]);
+            $where_array=['lat' => $request->lat, 'lng' => $request->lng, 'vehicle_type' => $request->vehicle_type];
+            if($request->price_from){
+                $where_array['price_from']=$request->price_from;
+            }
+            if($request->price_to){
+                $where_array['price_to']=$request->price_to;
+            }
+            $drivers = User::getAllNearestDriversApi($where_array);
             return _api_json($drivers);
         } catch (\Exception $e) {
             dd($e);

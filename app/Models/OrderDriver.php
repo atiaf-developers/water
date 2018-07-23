@@ -14,7 +14,7 @@ class OrderDriver extends MyModel
             'status_no' => 0,
             'client_message' => 'waiting_for_the_driver\'s_approval',
             'driver_message' => '',
-            'admin_message' => 'new_order'
+            'admin_message' => 'assigned'
         ],
         1 => [
             'status_no' => 1,

@@ -11,10 +11,9 @@ use App\Models\VehicleWeight;
 use Validator;
 use DB;
 
-class DelegatesController extends BackendController {
+class DriversController extends BackendController {
 
     private $rules = array(
-
         'letter_english.0' => 'required',
         'letter_english.1' => 'required',
         'letter_english.2' => 'required',
@@ -22,7 +21,6 @@ class DelegatesController extends BackendController {
         'num_english.1' => 'required',
         'num_english.2' => 'required',
         'num_english.3' => 'required',
-
         'letter_arabic.0' => 'required',
         'letter_arabic.1' => 'required',
         'letter_arabic.2' => 'required',
@@ -30,15 +28,12 @@ class DelegatesController extends BackendController {
         'num_arabic.1' => 'required',
         'num_arabic.2' => 'required',
         'num_arabic.3' => 'required',
-
         'vehicle_type' => 'required',
         'vehicle_weight' => 'required',
         'license_number' => 'required|unique:vehicles,license_number,NULL,id,deleted_at,NULL',
         'price' => 'required',
         'vehicle_image' => 'required|image|mimes:gif,png,jpeg|max:1000',
         'license_image' => 'required|image|mimes:gif,png,jpeg|max:1000',
-        
-        
         'name' => 'required',
         'username' => 'required|unique:users,username,NULL,id,deleted_at,NULL',
         'email' => 'email|unique:users,email,NULL,id,deleted_at,NULL',
@@ -51,24 +46,24 @@ class DelegatesController extends BackendController {
     public function __construct() {
 
         parent::__construct();
-        $this->middleware('CheckPermission:delegates,open', ['only' => ['index']]);
-        $this->middleware('CheckPermission:delegates,add', ['only' => ['store']]);
-        $this->middleware('CheckPermission:delegates,edit', ['only' => ['show', 'update']]);
-        $this->middleware('CheckPermission:delegates,delete', ['only' => ['delete']]);
+        $this->middleware('CheckPermission:drivers,open', ['only' => ['index']]);
+        $this->middleware('CheckPermission:drivers,add', ['only' => ['store']]);
+        $this->middleware('CheckPermission:drivers,edit', ['only' => ['show', 'update']]);
+        $this->middleware('CheckPermission:drivers,delete', ['only' => ['delete']]);
     }
 
     public function index(Request $request) {
 
-        return $this->_view('delegates/index', 'backend');
+        return $this->_view('drivers/index', 'backend');
     }
 
-    public function status($id){
+    public function status($id) {
         DB::beginTransaction();
         try {
             $vehicle = Vehicle::find($id);
             if (!$vehicle) {
                 return _json('error', _lang('app.not_found'));
-            }  
+            }
             $delegate = User::find($vehicle->driver_id);
             $delegate->active = !$delegate->active;
             $delegate->save();
@@ -89,7 +84,7 @@ class DelegatesController extends BackendController {
     public function create(Request $request) {
         $this->data['vehicle_types'] = VehicleType::getAllAdmin();
         $this->data['vehicle_weights'] = VehicleWeight::getAllAdmin();
-        return $this->_view('delegates/create', 'backend');
+        return $this->_view('drivers/create', 'backend');
     }
 
     /**
@@ -99,21 +94,21 @@ class DelegatesController extends BackendController {
      * @return \Illuminate\Http\Response
      */
     public function store(Request $request) {
-        
+
         $validator = Validator::make($request->all(), $this->rules);
         if ($validator->fails()) {
             $errors = $validator->errors()->toArray();
             return _json('error', $errors);
         }
 
-         if ($this->check_vehicle_plate($request->all())) {
+        if ($this->check_vehicle_plate($request->all())) {
             $message = _lang('messages.This_plate_number_is_already_exist');
             return _json('error', $message, 400);
-        } 
+        }
 
         DB::beginTransaction();
         try {
-           
+
             $delegate = new User;
             $delegate->name = $request->input('name');
             $delegate->username = $request->input('username');
@@ -163,13 +158,14 @@ class DelegatesController extends BackendController {
      * @return \Illuminate\Http\Response
      */
     public function show($id) {
-        $find = Vehicle::find($id);
-
-        if ($find) {
-            return _json('success', $find);
-        } else {
+        $vehicle = $this->getVehicle($id);
+        if (!$vehicle) {
             return $this->err404();
         }
+        //dd($vehicle);
+
+        $this->data['vehicle'] = $vehicle;
+        return $this->_view('drivers/view', 'backend');
     }
 
     /**
@@ -180,7 +176,7 @@ class DelegatesController extends BackendController {
      */
     public function edit($id) {
         $vehicle = Vehicle::find($id);
-         if (!$vehicle) {
+        if (!$vehicle) {
             return $this->err404();
         }
 
@@ -189,19 +185,19 @@ class DelegatesController extends BackendController {
         $this->data['vehicle_weights'] = VehicleWeight::getAllAdmin();
 
         if ($this->lang_code == 'en') {
-                $vehicle->plate_letter_ar = array_reverse(explode(' ', $vehicle->plate_letter_ar));
-                $vehicle->plate_letter_en = explode(' ', $vehicle->plate_letter_en);
-                $vehicle->plate_num_ar = explode(' ', $vehicle->plate_num_ar);
-                $vehicle->plate_num_en = explode(' ', $vehicle->plate_num_en);
+            $vehicle->plate_letter_ar = array_reverse(explode(' ', $vehicle->plate_letter_ar));
+            $vehicle->plate_letter_en = explode(' ', $vehicle->plate_letter_en);
+            $vehicle->plate_num_ar = explode(' ', $vehicle->plate_num_ar);
+            $vehicle->plate_num_en = explode(' ', $vehicle->plate_num_en);
         } else {
-                $vehicle->plate_letter_ar = explode(' ', $vehicle->plate_letter_ar);
-                $vehicle->plate_letter_en = array_reverse(explode(' ', $vehicle->plate_letter_en));
-                $vehicle->plate_num_ar = array_reverse(explode(' ', $vehicle->plate_num_ar));
-                $vehicle->plate_num_en = array_reverse(explode(' ', $vehicle->plate_num_en));
+            $vehicle->plate_letter_ar = explode(' ', $vehicle->plate_letter_ar);
+            $vehicle->plate_letter_en = array_reverse(explode(' ', $vehicle->plate_letter_en));
+            $vehicle->plate_num_ar = array_reverse(explode(' ', $vehicle->plate_num_ar));
+            $vehicle->plate_num_en = array_reverse(explode(' ', $vehicle->plate_num_en));
         }
         $this->data['vehicle'] = $vehicle;
 
-        return $this->_view('delegates/edit', 'backend');
+        return $this->_view('drivers/edit', 'backend');
     }
 
     /**
@@ -218,7 +214,7 @@ class DelegatesController extends BackendController {
         }
         $delegate = User::find($vehicle->driver_id);
 
-        unset($this->rules['vehicle_image'],$this->rules['license_image'],$this->rules['image'],$this->rules['password']);
+        unset($this->rules['vehicle_image'], $this->rules['license_image'], $this->rules['image'], $this->rules['password']);
 
         $this->rules['username'] = "required|unique:users,username,{$delegate->id},id,deleted_at,NULL";
         $this->rules['email'] = "required|unique:users,email,{$delegate->id},id,deleted_at,NULL";
@@ -231,10 +227,10 @@ class DelegatesController extends BackendController {
             return _json('error', $errors);
         }
 
-        if ($this->check_vehicle_plate($request->all(),$vehicle->id)) {
+        if ($this->check_vehicle_plate($request->all(), $vehicle->id)) {
             $message = _lang('messages.This_plate_number_is_already_exist');
             return _json('error', $message, 400);
-        } 
+        }
 
         DB::beginTransaction();
         try {
@@ -264,7 +260,7 @@ class DelegatesController extends BackendController {
                 $vehicle->license_image = Vehicle::upload($request->file('license_image'), 'vehicles', true);
             }
             $vehicle->save();
-           
+
 
             $delegate->name = $request->input('name');
             $delegate->username = $request->input('username');
@@ -316,87 +312,112 @@ class DelegatesController extends BackendController {
 
     public function data(Request $request) {
 
-        $delegates = Vehicle::Join('users', 'users.id', '=', 'vehicles.driver_id')
-        ->select([
+        $drivers = Vehicle::Join('users', 'users.id', '=', 'vehicles.driver_id')
+                ->select([
             'vehicles.id', "users.name", "vehicles.vehicle_image", 'users.image', 'users.active',
         ]);
 
-        return \Datatables::eloquent($delegates)
-        ->addColumn('options', function ($item) {
+        return \Datatables::eloquent($drivers)
+                        ->addColumn('options', function ($item) {
 
-            $back = "";
-            if (\Permissions::check('delegates', 'edit') || \Permissions::check('delegates', 'delete')) {
-                $back .= '<div class="btn-group">';
-                $back .= ' <button class="btn btn-xs green dropdown-toggle" type="button" data-toggle="dropdown" aria-expanded="false"> ' . _lang('app.options');
-                $back .= '<i class="fa fa-angle-down"></i>';
-                $back .= '</button>';
-                $back .= '<ul class = "dropdown-menu" role = "menu">';
-                if (\Permissions::check('delegates', 'edit')) {
-                    $back .= '<li>';
-                    $back .= '<a href="' . route('delegates.edit', $item->id) . '">';
-                    $back .= '<i class = "icon-docs"></i>' . _lang('app.edit');
-                    $back .= '</a>';
-                    $back .= '</li>';
-                }
+                            $back = "";
+                            if (\Permissions::check('drivers', 'edit') || \Permissions::check('drivers', 'delete')) {
+                                $back .= '<div class="btn-group">';
+                                $back .= ' <button class="btn btn-xs green dropdown-toggle" type="button" data-toggle="dropdown" aria-expanded="false"> ' . _lang('app.options');
+                                $back .= '<i class="fa fa-angle-down"></i>';
+                                $back .= '</button>';
+                                $back .= '<ul class = "dropdown-menu" role = "menu">';
+                                if (\Permissions::check('drivers', 'edit')) {
+                                    $back .= '<li>';
+                                    $back .= '<a href="' . route('drivers.edit', $item->id) . '">';
+                                    $back .= '<i class = "icon-docs"></i>' . _lang('app.edit');
+                                    $back .= '</a>';
+                                    $back .= '</li>';
+                                }
 
-                if (\Permissions::check('delegates', 'delete')) {
-                    $back .= '<li>';
-                    $back .= '<a href="" data-toggle="confirmation" onclick = "Delegates.delete(this);return false;" data-id = "' . $item->id . '">';
-                    $back .= '<i class = "icon-docs"></i>' . _lang('app.delete');
-                    $back .= '</a>';
-                    $back .= '</li>';
-                }
+                                if (\Permissions::check('drivers', 'delete')) {
+                                    $back .= '<li>';
+                                    $back .= '<a href="" data-toggle="confirmation" onclick = "Drivers.delete(this);return false;" data-id = "' . $item->id . '">';
+                                    $back .= '<i class = "icon-docs"></i>' . _lang('app.delete');
+                                    $back .= '</a>';
+                                    $back .= '</li>';
+                                }
+                                if (\Permissions::check('drivers', 'view')) {
+                                    $back .= '<li>';
+                                    $back .= '<a href="' . url('admin/drivers/' . $item->id) . '" data-toggle="confirmation">';
+                                    $back .= '<i class = "icon-docs"></i>' . _lang('app.view');
+                                    $back .= '</a>';
+                                    $back .= '</li>';
+                                }
 
-                $back .= '</ul>';
-                $back .= ' </div>';
-            }
-            return $back;
-        })
-        ->addColumn('vehicle_image', function ($item) {
-            $back = '<img src="' . url('public/uploads/vehicles/' . $item->vehicle_image) . '" style="height:64px;width:64px;"/>';
-            return $back;
-        })
-        ->editColumn('image', function ($item) {
-            $back = '<img src="' . url('public/uploads/users/' . $item->image) . '" style="height:64px;width:64px;"/>';
-            return $back;
-        })
-        ->editColumn('active', function ($item) {
-           if ($item->active == 1) {
-                $message = _lang('app.active');
-                $class = 'btn-info';
-            } else {
-                $message = _lang('app.not_active');
-                $class = 'btn-danger';
-            }
-            $back = '<a class="btn ' . $class . '" onclick = "Delegates.status(this);return false;" data-id = "' . $item->id . '" data-status = "' . $item->active . '">' . $message . ' <a>';
-            return $back;
-        })
-        ->escapeColumns([])
-        ->make(true);
+                                $back .= '</ul>';
+                                $back .= ' </div>';
+                            }
+                            return $back;
+                        })
+                        ->addColumn('vehicle_image', function ($item) {
+                            $back = '<img src="' . url('public/uploads/vehicles/' . $item->vehicle_image) . '" style="height:64px;width:64px;"/>';
+                            return $back;
+                        })
+                        ->editColumn('image', function ($item) {
+                            $back = '<img src="' . url('public/uploads/users/' . $item->image) . '" style="height:64px;width:64px;"/>';
+                            return $back;
+                        })
+                        ->editColumn('active', function ($item) {
+                            if ($item->active == 1) {
+                                $message = _lang('app.active');
+                                $class = 'btn-info';
+                            } else {
+                                $message = _lang('app.not_active');
+                                $class = 'btn-danger';
+                            }
+                            $back = '<a class="btn ' . $class . '" onclick = "Drivers.status(this);return false;" data-id = "' . $item->id . '" data-status = "' . $item->active . '">' . $message . ' <a>';
+                            return $back;
+                        })
+                        ->escapeColumns([])
+                        ->make(true);
     }
 
     private function check_vehicle_plate($data, $id = false) {
         if ($this->lang_code == 'en') {
-                $plate_letter_ar = implode(' ', array_reverse($data['letter_arabic']));
-                $plate_letter_en = implode(' ', $data['letter_english']);
-                $plate_num_ar = implode(' ', $data['num_arabic']);
-                $plate_num_en = implode(' ', $data['num_english']);
-            } else {
-                $plate_letter_ar = implode(' ', $data['letter_arabic']);
-                $plate_letter_en = implode(' ', array_reverse($data['letter_english']));
-                $plate_num_ar = implode(' ', array_reverse($data['num_arabic']));
-                $plate_num_en = implode(' ', array_reverse($data['num_english']));
-            }
+            $plate_letter_ar = implode(' ', array_reverse($data['letter_arabic']));
+            $plate_letter_en = implode(' ', $data['letter_english']);
+            $plate_num_ar = implode(' ', $data['num_arabic']);
+            $plate_num_en = implode(' ', $data['num_english']);
+        } else {
+            $plate_letter_ar = implode(' ', $data['letter_arabic']);
+            $plate_letter_en = implode(' ', array_reverse($data['letter_english']));
+            $plate_num_ar = implode(' ', array_reverse($data['num_arabic']));
+            $plate_num_en = implode(' ', array_reverse($data['num_english']));
+        }
 
         $vehicle = Vehicle::where('plate_letter_ar', $plate_letter_ar);
         $vehicle->where('plate_letter_en', $plate_letter_en);
         $vehicle->where('plate_num_ar', $plate_num_ar);
-        $vehicle->where('plate_num_en',  $plate_num_en);
+        $vehicle->where('plate_num_en', $plate_num_en);
         if ($id) {
             $vehicle->where('id', '!=', $id);
         }
         $find = $vehicle->first();
         return $find ? true : false;
+    }
+
+    private function getVehicle($vehicle_id) {
+        $Vehicle = Vehicle::join('users', 'users.id', '=', 'vehicles.driver_id')
+                ->leftJoin('rating', 'vehicles.id', 'rating.entity_id')
+                ->join('vehicle_types', 'vehicle_types.id', 'vehicles.vehicle_type_id')
+                ->join('vehicle_types_translations', 'vehicle_types.id', 'vehicle_types_translations.vehicle_type_id')
+                ->join('vehicle_weights', 'vehicle_weights.id', 'vehicles.vehicle_weight_id')
+                ->join('vehicle_weights_translations', 'vehicle_weights.id', 'vehicle_weights_translations.vehicle_weight_id')
+                ->where('vehicles.id', $vehicle_id)
+                ->select([
+                    'vehicles.id', "vehicles.plate_letter_ar", "vehicles.plate_letter_en", "vehicles.plate_num_ar", "vehicles.plate_num_en", "vehicles.license_number", "vehicles.vehicle_image",
+                    "vehicles.price", "vehicles.license_image", "vehicles.lat", "vehicles.lng", 'vehicle_types_translations.title as vehicleTypeTitle', "vehicle_weights_translations.title as vehicleWeightTitle",
+                    "vehicles.is_ready", 'users.image as driver_image', 'users.username', 'users.active', "users.name", "users.mobile", "users.email","vehicles.rating",'rating.total_rates'
+                ])
+                ->first();
+
+        return $Vehicle;
     }
 
 }
