@@ -42,6 +42,7 @@ class User extends Authenticatable {
 
     public static function getAllNearestDriversApi($where_array = array()) {
         $setting = Setting::where('name', 'map_range')->orWhere('name', 'commission')->get()->keyBy('name');
+        $commission = $setting['commission']->value;
         $data = Vehicle::join('users', 'users.id', '=', 'vehicles.driver_id');
         $data->leftJoin('orders_drivers', 'users.id', '=', 'orders_drivers.driver_id');
         $data->join('vehicle_types', 'vehicle_types.id', '=', 'vehicles.vehicle_type_id');
@@ -50,23 +51,24 @@ class User extends Authenticatable {
         $data->join('vehicle_weights_translations', 'vehicle_weights.id', '=', 'vehicle_weights_translations.vehicle_weight_id');
         $data->where(function ($query) {
             $query->whereNull('orders_drivers.id')
-                    ->orWhereIn('orders_drivers.status', [0, 2, 3, 4, 7]);
+                    ->orWhereIn('orders_drivers.status', [2, 3, 4, 7]);
         });
         $data->where('vehicle_types_translations.locale', static::getLangCode());
         $data->where('vehicle_weights_translations.locale', static::getLangCode());
         //$data->where('vehicles.is_ready', 1);
-        if(isset($where_array['price_from'])){
-            $data->where('vehicles.price','>=', $where_array['price_from']);
-        }
-        if(isset($where_array['price_to'])){
-            $data->where('vehicles.price','<=', $where_array['price_to']);
-        }
+
         $data->where('vehicle_types.id', $where_array['vehicle_type']);
-        $data->select('users.id', 'vehicles.vehicle_image as vehicleImage', 'vehicles.price', 'vehicle_types_translations.title as vehicleTypeTitle', "vehicles.rating as vehicleRating", 'vehicle_weights_translations.title as vehicleWeightTitle', 'vehicles.lat', 'vehicles.lng', DB::raw(static::iniDiffLocations('vehicles', $where_array['lat'], $where_array['lng'])));
+        $data->select('users.id', 'vehicles.vehicle_image as vehicleImage', DB::RAW("(vehicles.price+((vehicles.price*$commission)/100)) as price"), 'vehicle_types_translations.title as vehicleTypeTitle', "vehicles.rating as vehicleRating", 'vehicle_weights_translations.title as vehicleWeightTitle', 'vehicles.lat', 'vehicles.lng', DB::raw(static::iniDiffLocations('vehicles', $where_array['lat'], $where_array['lng'])));
         $data->groupBy('vehicles.id');
         $data->orderBy('distance', 'ASC');
         $data->having('distance', '<=', $setting['map_range']->value);
-        $data=$data->get();
+        if (isset($where_array['price_from'])) {
+            $data->having('price', '>=', $where_array['price_from']);
+        }
+        if (isset($where_array['price_to'])) {
+            $data->having('price', '<=', $where_array['price_to']);
+        }
+        $data = $data->get();
         // dd($data);
         $data = static::transformCollection($data, 'NearestDriversApi', ['commission' => $setting['commission']->value, 'lat' => $where_array['lat'], 'lng' => $where_array['lng']]);
         return $data;

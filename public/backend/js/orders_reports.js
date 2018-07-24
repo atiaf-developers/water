@@ -4,7 +4,9 @@ var Orders = function () {
     var init = function () {
 
         handleReport();
-   
+        if ($('#map').length > 0) {
+            Map.initMap(false, false, false);
+        }
 
     };
 

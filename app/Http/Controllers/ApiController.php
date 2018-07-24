@@ -23,7 +23,7 @@ class ApiController extends Controller {
     protected $User;
     protected $data;
     protected $limit = 10;
-    protected $expire_no = 1;
+    protected $expire_no = 5;
     protected $expire_type = 'day';
 
     public function __construct() {

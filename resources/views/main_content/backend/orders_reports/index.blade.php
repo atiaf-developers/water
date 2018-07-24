@@ -1,9 +1,9 @@
 @extends('layouts.backend')
 
-@section('pageTitle', _lang('app.orders'))
+@section('pageTitle', _lang('app.orders_reports'))
 @section('breadcrumb')
 <li><a href="{{url('admin')}}">{{_lang('app.dashboard')}}</a> <i class="fa fa-circle"></i></li>
-<li><span> {{_lang('app.orders')}}</span></li>
+<li><span> {{_lang('app.orders_reports')}}</span></li>
 @endsection
 
 @section('js')
@@ -142,7 +142,7 @@
                             <td>{{$one->statusText}}</td>
                             <td>{{$one->createdAt}}</td>
                             <td>
-                                <a class="btn btn-xs" href="{{url('admin/orders_reports/'.$one->id)}}">{{_lang('app.details')}}</a>
+                                <a class="btn btn-xs" href="{{url('admin/orders_reports/'.$one->id)}}">{{_lang('app.view')}}</a>
                                 @if($one->closed==0)
                                 <a class="btn red-sunglo btn-xs" onclick = "Orders.closed(this);return false;" data-id="{{$one->id}}" href="">{{_lang('app.close')}}</a>
                                 @endif

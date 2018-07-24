@@ -47,11 +47,11 @@ class OrdersReportsController extends BackendController {
     }
 
     public function show(Request $request, $id) {
-        $order = Order::getOrdersAdmin($request, $id);
+        $order = Order::getOrdersAdmin(['order_id'=>$id]);
         if (!$order) {
             return $this->err404();
         }
-        $order->details = Order::getOrderDetailsAdmin($id);
+      
         $this->data['order'] = $order;
 
         return $this->_view('orders_reports/view', 'backend');

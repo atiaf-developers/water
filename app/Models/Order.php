@@ -36,26 +36,19 @@ class Order extends Model {
 //                    $join->on("orders.id", "=", "orders_drivers.order_id");
 //                });
         $orders = static::join('orders_drivers', function ($join) {
-            $join->on('orders.id', '=', 'orders_drivers.order_id')
-                 ->where('orders_drivers.is_final_destination',1);
-        });
+                    $join->on('orders.id', '=', 'orders_drivers.order_id')
+                            ->where('orders_drivers.is_final_destination', 1);
+                });
         $orders->join('users as drivers', 'drivers.id', '=', 'orders_drivers.driver_id');
         $orders->join('users as clients', 'clients.id', '=', 'orders.client_id');
         $orders->join('vehicles', 'drivers.id', '=', 'vehicles.driver_id');
-        $orders->join('vehicle_types', 'vehicle_types.id', '=', 'vehicles.vehicle_type_id');
-        $orders->join('vehicle_types_translations', 'vehicle_types.id', '=', 'vehicle_types_translations.vehicle_type_id');
-        $orders->join('vehicle_weights', 'vehicle_weights.id', '=', 'vehicles.vehicle_weight_id');
-        $orders->join('vehicle_weights_translations', 'vehicle_weights.id', '=', 'vehicle_weights_translations.vehicle_weight_id');
         $orders->leftJoin('rejection_reasons', 'rejection_reasons.id', '=', 'orders.rejection_reason_id');
         $orders->leftJoin('rejection_reasons_translations', 'rejection_reasons.id', '=', 'rejection_reasons_translations.rejection_reason_id');
-        $orders->where('vehicle_types_translations.locale', $lang_code);
-        $orders->where('vehicle_weights_translations.locale', $lang_code);
-        $orders->select(["orders.*","orders_drivers.driver_id as driverId","clients.id as clientId","orders_drivers.status", 'vehicles.id as vehicleId', "vehicles.lat as vehicleLat", "vehicles.lng as vehicleLng", "vehicles.vehicle_image", "clients.username as clientName", "clients.image as clientImage",
-            "drivers.name as driverName", 'vehicle_types_translations.title as vehicleTypeTitle', 'vehicle_weights_translations.title as vehicleWeightTitle', 'rejection_reasons_translations.title as rejectionReasonTitle',
-            "orders.rating", "orders.closed", "orders.created_at"]);
-//        $orders->orderBy('orders_drivers.id','desc');
-//        $orders->groupBy('orders_drivers.driver_id');
-//        $orders->groupBy('orders.id');
+        $orders->select(["orders.*", "orders_drivers.driver_id as driverId", "clients.id as clientId", "orders_drivers.status", "vehicles.vehicle_image", "clients.username as clientName", "clients.image as clientImage",
+            "drivers.name as driverName", 'rejection_reasons_translations.title as rejectionReasonTitle', "drivers.id as driverId",
+            "orders.rating", "orders.closed", "orders.created_at", "orders.price AS driverValue",
+            DB::RAW("(((orders.price*orders.commission)/100)+((orders.price*orders.taxes)/100)+orders.delivery_cost) AS companyValue")]);
+
         if (isset($where_array['order_id'])) {
             $orders->where('orders.id', $where_array['order_id']);
             $orders = $orders->first();
@@ -65,26 +58,26 @@ class Order extends Model {
         } else {
             //dd($where_array);
             $orders = static::handleWhereAdmin($orders, $where_array);
-
+            $orders->orderBy('orders.created_at','desc');
+//            $orders->groupBy('orders.id');
             $orders = $orders->paginate(static::$limit);
-            $orders->getCollection()->transform(function($order, $key) use($where_array) {
-                return static::transformAdmin($order, $where_array);
+            $orders->getCollection()->transform(function($order, $key) {
+                return static::transformAdmin($order);
             });
         }
 
         return $orders;
     }
-   
 
     public static function getOrdersApi($where_array = array()) {
 
         $lang_code = static::getLangCode();
-         $orders = static::join('orders_drivers', function ($join) {
-            $join->on('orders.id', '=', 'orders_drivers.order_id')
-                 ->where('orders_drivers.is_final_destination',1);
-        });
+        $orders = static::join('orders_drivers', function ($join) {
+                    $join->on('orders.id', '=', 'orders_drivers.order_id')
+                            ->where('orders_drivers.is_final_destination', 1);
+                });
         $orders->join('users as drivers', 'drivers.id', '=', 'orders_drivers.driver_id');
-        $orders->join('users as clients', 'clients.id', '=', 'orders.client_id');
+        $orders->leftJoin('users as clients', 'clients.id', '=', 'orders.client_id');
         $orders->join('vehicles', 'drivers.id', '=', 'vehicles.driver_id');
         $orders->join('vehicle_types', 'vehicle_types.id', '=', 'vehicles.vehicle_type_id');
         $orders->join('vehicle_types_translations', 'vehicle_types.id', '=', 'vehicle_types_translations.vehicle_type_id');
@@ -97,7 +90,7 @@ class Order extends Model {
         $orders->select(["orders.*", "orders_drivers.status", 'vehicles.id as vehicleId', "vehicles.lat as vehicleLat", "vehicles.lng as vehicleLng", "vehicles.vehicle_image", "clients.username as clientName", "clients.image as clientImage",
             "drivers.name as driverName", 'vehicle_types_translations.title as vehicleTypeTitle', 'vehicle_weights_translations.title as vehicleWeightTitle', 'rejection_reasons_translations.title as rejectionReasonTitle',
             "orders.rating", "orders.closed"]);
-        $orders->groupBy('orders.id');
+        
         if (isset($where_array['order_id'])) {
             $orders->where('orders.id', $where_array['order_id']);
             $orders = $orders->first();
@@ -107,7 +100,8 @@ class Order extends Model {
         } else {
             //dd($where_array);
             $orders = static::handleWhereApi($orders, $where_array);
-
+            $orders->orderBy('orders.created_at','desc');
+            $orders->groupBy('orders.id');
             $orders = $orders->paginate(static::$limit);
             $orders = $orders->getCollection()->transform(function($order, $key) use($where_array) {
                 return static::transformApi($order, $where_array);
@@ -116,11 +110,16 @@ class Order extends Model {
 
         return $orders;
     }
+  
 
     public static function getOrdersCountWithDistinctClients($where_array = array()) {
 
         $lang_code = static::getLangCode();
-        $orders = static::join('orders_drivers', 'orders.id', '=', 'orders_drivers.order_id');
+        $orders = static::join('orders_drivers', function ($join) {
+                    $join->on('orders.id', '=', 'orders_drivers.order_id')
+                            ->where('orders_drivers.is_final_destination', 1);
+                });
+
         $orders->where("orders_drivers.driver_id", $where_array['driver']);
         $orders->whereIn("orders_drivers.status", $where_array['status']);
         $orders->groupBy('orders.client_id');
@@ -130,7 +129,11 @@ class Order extends Model {
     }
 
     public static function getOrdersInfoAdmin($where_array) {
-        $orders = static::join('orders_drivers', 'orders.id', '=', 'orders_drivers.order_id');
+        $orders = static::join('orders_drivers', function ($join) {
+                    $join->on('orders.id', '=', 'orders_drivers.order_id')
+                            ->where('orders_drivers.is_final_destination', 1);
+                });
+
         $orders->join('users as drivers', 'drivers.id', '=', 'orders_drivers.driver_id');
         $orders->join('users as clients', 'clients.id', '=', 'orders.client_id');
         $orders->join('vehicles', 'drivers.id', '=', 'vehicles.driver_id');
@@ -146,9 +149,12 @@ class Order extends Model {
     }
 
     public static function getOrderInfoApi($where_array) {
-        $orders = static::join('orders_drivers', 'orders.id', '=', 'orders_drivers.order_id');
+        $orders = static::join('orders_drivers', function ($join) {
+                    $join->on('orders.id', '=', 'orders_drivers.order_id')
+                            ->where('orders_drivers.is_final_destination', 1);
+                });
         $orders->join('users as drivers', 'drivers.id', '=', 'orders_drivers.driver_id');
-        $orders->join('users as clients', 'clients.id', '=', 'orders.client_id');
+        $orders->leftJoin('users as clients', 'clients.id', '=', 'orders.client_id');
         $orders->join('vehicles', 'drivers.id', '=', 'vehicles.driver_id');
         $orders = static::handleWhereApi($orders, $where_array);
         $orders->select([
@@ -203,6 +209,9 @@ class Order extends Model {
         if (isset($where_array['driver'])) {
             $orders->where("orders_drivers.driver_id", $where_array['driver']);
         }
+        if (isset($where_array['device_id'])) {
+            $orders->where("orders.device_id", $where_array['device_id']);
+        }
         if (isset($where_array['status'])) {
             $orders->whereIn("orders_drivers.status", $where_array['status']);
         }
@@ -210,28 +219,26 @@ class Order extends Model {
         return $orders;
     }
 
-    public static function transformAdmin($item, $where_array) {
+    public static function transformAdmin($item) {
         $transformer = new \stdClass();
         $transformer->id = $item->id;
         $transformer->date = date('Y/m/d', strtotime($item->date));
-        $transformer->orderDriverId = $item->orderDriverId;
-        $transformer->vehicleId = $item->vehicleId;
-        $transformer->clientId = $item->clientId;
-        $transformer->driverId = $item->driverId;
+        $transformer->lat = $item->lat;
+        $transformer->lng = $item->lng;
         $transformer->price = $item->price;
         $transformer->taxes = $item->taxes;
         $transformer->deliveryCost = $item->delivery_cost;
         $transformer->totalPrice = $item->total_price;
         $transformer->paymentMethodNo = $item->payment_method;
-        $transformer->vehicleLat = $item->vehicleLat;
-        $transformer->vehicleLng = $item->vehicleLng;
         $transformer->paymentMethodText = isset(static::$payment_method[$item->payment_method]) ? _lang('app.' . static::$payment_method[$item->payment_method]) : '';
 
-        $transformer->vehicleTypeTitle = $item->vehicleTypeTitle;
-        $transformer->vehicleWeightTitle = $item->vehicleWeightTitle;
         $transformer->rejectionReasonTitle = $item->rejectionReasonTitle;
+        $transformer->clientId = $item->clientId;
+        $transformer->driverId = $item->driverId;
         $transformer->clientName = $item->clientName;
         $transformer->driverName = $item->driverName;
+        $transformer->driverValue = $item->driverValue;
+        $transformer->companyValue = $item->companyValue;
         $transformer->vehicleImage = url('public/uploads/vehicles') . '/' . $item->vehicle_image;
         $transformer->clientImage = url('public/uploads/users') . '/' . $item->clientImage;
         $transformer->statusNo = $item->status;

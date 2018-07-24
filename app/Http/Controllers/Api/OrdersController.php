@@ -43,9 +43,9 @@ class OrdersController extends ApiController {
     public function index(Request $request) {
         try {
             $user = $this->auth_user();
-           
-            $where_array['user_type'] = $user->type;
+
             if ($user) {
+                $where_array['user_type'] = $user->type;
                 if ($user->type == 1) {
                     $where_array['client'] = $user->id;
                     if ($request->page_type == 'previous') {
@@ -70,43 +70,23 @@ class OrdersController extends ApiController {
                     }
                 }
             } else {
-                $where_array = ['device_id' => $request->input('device_id')];
+                $device = Device::where('device_id', $request->input('device_id'))->first();
+                if ($device) {
+                    $device_id = $device->id;
+                } else {
+                    $device_id = null;
+                }
+                //dd($device);
+                $where_array = ['device_id' => $device_id];
+                $where_array['status'] = OrderDriver::$user_status['client']['current'];
             }
             $orders = Order::getOrdersApi($where_array);
             $info = Order::getOrderInfoApi($where_array);
             return _api_json(['orders' => $orders, 'info' => $info]);
         } catch (\Exception $e) {
+            dd($e);
             $message = _lang('app.error_is_occured');
             return _api_json([], ['message' => $e->getMessage()], 400);
-        }
-    }
-
-    public function current(Request $request) {
-        try {
-            $user = $this->auth_user();
-        
-            $where_array = array();
-            if ($user) {
-                if ($user->type == 1) {
-                    $where_array['client'] = $user->id;
-                    $where_array['status'] = OrderDriver::$user_status['client']['current'];
-                } else if ($user->type == 2) {
-                    $where_array['driver'] = $user->id;
-                    $where_array['status'] = OrderDriver::$user_status['driver']['current'];
-                }
-            } else {
-                $where_array = ['device_id' => $request->input('device_id')];
-            }
-            $orders = Order::getOrdersApi($where_array);
-            if ($orders->count() > 0) {
-                $orders = $orders[0];
-            } else {
-                $orders = new \stdClass;
-            }
-            return _api_json($orders);
-        } catch (\Exception $e) {
-            $message = _lang('app.error_is_occured');
-            return _api_json(new \stdClass, ['message' => $e->getMessage()], 400);
         }
     }
 
@@ -150,6 +130,8 @@ class OrdersController extends ApiController {
                 DB::beginTransaction();
 
                 if (!$order) {
+                    //check if cient select old driver fro same order
+
                     $setting = Setting::whereIn('name', ['commission', 'tax', 'delivery_cost'])->get()->keyBy('name');
                     $driver_vehicle = Vehicle::where('driver_id', $request->input('driver'))->first();
                     //dd($setting);
@@ -173,10 +155,14 @@ class OrdersController extends ApiController {
                     $order->lng = $request->input('lng');
                     $order->date = date('Y-m-d');
                     $order->save();
-                }else{
-                   OrderDriver::where('order_id',$order->id)->where('is_final_destination',1)->update(['is_final_destination' => 0]);  
+                } else {
+                    $old_driver = OrderDriver::where('order_id', $order->id)->where('driver_id', $request->input('driver'))->first();
+                    if ($old_driver) {
+                        return _api_json('', ['message' => _lang('app.your_order_has_been_rejected_from_this_driver_before')], 422);
+                    }
+                    OrderDriver::where('order_id', $order->id)->where('is_final_destination', 1)->update(['is_final_destination' => 0]);
                 }
-                 
+
                 $OrderDriver = new OrderDriver;
                 $OrderDriver->order_id = $order->id;
                 $OrderDriver->driver_id = $request->input('driver');
@@ -185,7 +171,7 @@ class OrdersController extends ApiController {
                 $OrderDriver->save();
 
                 Vehicle::where('driver_id', $request->input('driver'))->update(['is_ready' => 0]);
-              
+
                 DB::commit();
 
                 return _api_json('', ['message' => _lang('app.sent_successfully'), 'order_id' => $order->id]);
@@ -200,7 +186,7 @@ class OrdersController extends ApiController {
     public function changeOrderStatus(Request $request) {
         $user = $this->auth_user();
         //dd($user->id);
-        if ($user->type == 2) {
+        if ($user && $user->type == 2) {
             $OrderDriver = OrderDriver::where('order_id', $request->order)->where('driver_id', $user->id)->first();
         } else {
             $OrderDriver = OrderDriver::where('order_id', $request->order)->orderBy('created_at', 'desc')->first();
